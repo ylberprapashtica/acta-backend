@@ -33,10 +33,8 @@ async function bootstrap() {
 
 const appPromise = bootstrap();
 
-export default appPromise;
-
 // Export handler for Vercel
-export const handler = async (req: any, res: any) => {
+export default async (req: any, res: any) => {
   const app = await appPromise;
   return app.handle(req, res);
 }; 
