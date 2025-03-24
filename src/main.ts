@@ -39,13 +39,15 @@ async function bootstrap() {
   } else {
     console.log('Running in production mode (serverless)');
   }
+
+  return app;
 }
 
 // Initialize the application
-bootstrap().catch(err => {
+const appPromise = bootstrap().catch(err => {
   console.error('Failed to start application:', err);
   process.exit(1);
 });
 
 // Export the app instance for Vercel
-export default app; 
+export default appPromise; 
