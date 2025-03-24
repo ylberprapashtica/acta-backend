@@ -4,16 +4,25 @@ export class InitialSchema1711147400000 implements MigrationInterface {
     name = 'InitialSchema1711147400000';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.SCHEMA_NAME || 'acta_foughtsave';
+        const schemaName = process.env.SCHEMA_NAME;
 
         // Create schema if it doesn't exist
         await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
         
-        // Create uuid-ossp extension in public schema
+        // Create uuid-ossp extension in public schema if it doesn't exist
         await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public`);
         
         // Set the search path to include both schemas
         await queryRunner.query(`SET search_path TO "${schemaName}", public`);
+
+        // Create migrations table in our schema
+        await queryRunner.query(`
+            CREATE TABLE IF NOT EXISTS "${schemaName}"."migrations" (
+                id SERIAL PRIMARY KEY,
+                "timestamp" bigint NOT NULL,
+                name character varying NOT NULL
+            )
+        `);
 
         // Create tables in our schema
         await queryRunner.query(`
@@ -98,7 +107,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.SCHEMA_NAME || 'acta_foughtsave';
+        const schemaName = process.env.SCHEMA_NAME;
         
         // Drop tables in reverse order
         await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".invoice_item CASCADE`);
@@ -106,6 +115,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".article CASCADE`);
         await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".company CASCADE`);
         await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".users CASCADE`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".migrations CASCADE`);
         
         // Drop the schema and its contents
         await queryRunner.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);

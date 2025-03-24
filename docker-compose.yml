@@ -18,6 +18,21 @@ services:
     networks:
       - acta_network
 
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: acta_server
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - acta_network
+
 volumes:
   postgres_data:
 

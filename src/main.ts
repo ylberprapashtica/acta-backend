@@ -20,7 +20,9 @@ async function bootstrap() {
       DATABASE_URL: process.env.DATABASE_URL
     });
 
-    app = await NestFactory.create<NestExpressApplication>(AppModule);
+    app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      logger: ['error', 'warn', 'debug', 'verbose'],
+    });
     app.useGlobalPipes(new ValidationPipe());
     
     // Configure CORS

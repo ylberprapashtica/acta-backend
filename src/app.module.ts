@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
@@ -13,8 +14,13 @@ import { Article } from './entities/article.entity';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceItem } from './entities/invoice-item.entity';
 import { InvoiceModule } from './invoice/invoice.module';
-import { InitialSchema1711147400000 } from './database/migrations/1711147400000-InitialSchema';
 import { DataSource } from 'typeorm';
+import { Tenant } from './entities/tenant.entity';
+import { LoggerService } from './common/services/logger.service';
+import { RolesGuard } from './common/guards/roles.guard';
+import { TenantGuard } from './common/guards/tenant.guard';
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -30,23 +36,38 @@ import { DataSource } from 'typeorm';
         // Base configuration
         const config = {
           ...configService.get('database'),
-          entities: [User, Company, Article, Invoice, InvoiceItem],
-          migrations: [InitialSchema1711147400000],
+          entities: [User, Company, Article, Invoice, InvoiceItem, Tenant],
           migrationsRun: true,
           schema: schemaName,
-          synchronize: true
+          synchronize: false
         };
 
         return config;
       },
       inject: [ConfigService],
     }),
+    AuthModule,
     UsersModule,
     CompanyModule,
     ArticleModule,
     InvoiceModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    LoggerService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TenantGuard,
+    },
+  ],
 })
 export class AppModule {} 
