@@ -25,7 +25,7 @@ import { DataSource } from 'typeorm';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const schemaName = process.env.POSTGRES_USER || 'acta_foughtsave';
+        const schemaName = process.env.SCHEMA_NAME || 'acta_foughtsave';
         
         // Base configuration
         const config = {
@@ -33,42 +33,9 @@ import { DataSource } from 'typeorm';
           entities: [User, Company, Article, Invoice, InvoiceItem],
           migrations: [InitialSchema1711147400000],
           migrationsRun: true,
-          migrationsTableName: `${schemaName}.migrations`, // Use schema-qualified table name
-          schema: schemaName // Set default schema
+          schema: schemaName,
+          synchronize: true
         };
-
-        try {
-          // Create initial connection to create schema
-          const tempDataSource = new DataSource({
-            type: 'postgres',
-            host: process.env.POSTGRES_HOST,
-            port: parseInt(process.env.POSTGRES_PORT || '5432'),
-            username: process.env.POSTGRES_USER,
-            password: process.env.POSTGRES_PASSWORD,
-            database: process.env.POSTGRES_DB,
-            ssl: false
-          });
-
-          await tempDataSource.initialize();
-          
-          // Create schema and extension
-          await tempDataSource.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
-          await tempDataSource.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "${schemaName}"`);
-          
-          // Create migrations table manually since we don't have public schema access
-          await tempDataSource.query(`
-            CREATE TABLE IF NOT EXISTS "${schemaName}"."migrations" (
-              "id" SERIAL PRIMARY KEY,
-              "timestamp" bigint NOT NULL,
-              "name" character varying NOT NULL
-            )
-          `);
-
-          await tempDataSource.destroy();
-        } catch (error) {
-          console.error('Schema initialization error:', error);
-          // Continue even if schema exists
-        }
 
         return config;
       },

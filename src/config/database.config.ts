@@ -2,8 +2,6 @@ import { registerAs } from '@nestjs/config';
 import { join } from 'path';
 
 export default registerAs('database', () => {
-  const schemaName = process.env.POSTGRES_USER || 'acta_foughtsave';
-  
   return {
     type: 'postgres',
     host: process.env.POSTGRES_HOST || 'localhost',
@@ -11,9 +9,9 @@ export default registerAs('database', () => {
     username: process.env.POSTGRES_USER || 'acta_user',
     password: process.env.POSTGRES_PASSWORD || 'acta_password',
     database: process.env.POSTGRES_DB || 'acta_db',
-    schema: schemaName,
+    schema: process.env.POSTGRES_USER || 'acta_foughtsave',
     entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
-    synchronize: false,
+    synchronize: true,
     logging: true,
     ssl: false,
     extra: {

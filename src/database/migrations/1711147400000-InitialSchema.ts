@@ -4,21 +4,21 @@ export class InitialSchema1711147400000 implements MigrationInterface {
     name = 'InitialSchema1711147400000';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.POSTGRES_USER || 'acta_foughtsave';
+        const schemaName = process.env.SCHEMA_NAME || 'acta_foughtsave';
 
         // Create schema if it doesn't exist
         await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
         
-        // Create uuid-ossp extension in our schema
-        await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "${schemaName}"`);
+        // Create uuid-ossp extension in public schema
+        await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public`);
         
-        // Set the search path to our schema
-        await queryRunner.query(`SET search_path TO "${schemaName}"`);
+        // Set the search path to include both schemas
+        await queryRunner.query(`SET search_path TO "${schemaName}", public`);
 
         // Create tables in our schema
         await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS "${schemaName}".users (
-                id uuid DEFAULT ${schemaName}.uuid_generate_v4() NOT NULL,
+                id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
                 "firstName" character varying NOT NULL,
                 "lastName" character varying NOT NULL,
                 email character varying NOT NULL UNIQUE,
@@ -31,7 +31,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
 
         await queryRunner.query(`
             CREATE TABLE IF NOT EXISTS "${schemaName}".company (
-                id uuid DEFAULT ${schemaName}.uuid_generate_v4() NOT NULL,
+                id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
                 "businessName" character varying NOT NULL,
                 "tradeName" character varying,
                 "businessType" character varying NOT NULL,
@@ -98,7 +98,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.POSTGRES_USER || 'acta_foughtsave';
+        const schemaName = process.env.SCHEMA_NAME || 'acta_foughtsave';
         
         // Drop tables in reverse order
         await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".invoice_item CASCADE`);
@@ -107,10 +107,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
         await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".company CASCADE`);
         await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".users CASCADE`);
         
-        // Drop the extension from our schema
-        await queryRunner.query(`DROP EXTENSION IF EXISTS "uuid-ossp" CASCADE`);
-        
-        // Drop the schema
+        // Drop the schema and its contents
         await queryRunner.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
     }
 } 
