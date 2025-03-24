@@ -23,6 +23,10 @@ if (isProduction) {
     throw new Error('DATABASE_URL is required in production environment');
   }
 
+  // Parse database URL
+  const url = new URL(databaseUrl);
+  const databaseName = url.pathname.slice(1);
+
   console.log('Using production database configuration:', {
     host: url.hostname,
     database: databaseName,
