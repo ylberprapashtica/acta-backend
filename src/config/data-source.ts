@@ -23,7 +23,7 @@ if (isProduction) {
   dataSource = new DataSource({
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    schema: process.env.DATABASE_SCHEMA,
+    schema: process.env.SCHEMA_NAME,
     entities: [join(__dirname, '../**/*.entity{.ts,.js}')],
     migrations: [join(__dirname, '../database/migrations/*{.ts,.js}')],
     migrationsRun: true,
