@@ -18,8 +18,7 @@ async function bootstrap() {
     console.log('Starting application with environment:', {
       NODE_ENV: process.env.NODE_ENV,
       PORT: process.env.PORT,
-      DATABASE_URL: process.env.DATABASE_URL ? '***' : undefined,
-      hasDatabaseUrl: !!process.env.DATABASE_URL
+      DATABASE_URL: process.env.DATABASE_URL
     });
 
     app = await NestFactory.create<NestExpressApplication>(AppModule);
