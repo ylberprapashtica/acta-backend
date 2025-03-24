@@ -2,11 +2,26 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
+let app: any;
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
-  await app.listen(process.env.PORT || 3000);
+  
+  if (process.env.NODE_ENV !== 'production') {
+    await app.listen(process.env.PORT || 3000);
+  }
+  
+  return app;
 }
 
-bootstrap(); 
+const appPromise = bootstrap();
+
+export default appPromise;
+
+// Export handler for Vercel
+export const handler = async (req: any, res: any) => {
+  const app = await appPromise;
+  return app.handle(req, res);
+}; 
