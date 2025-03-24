@@ -15,10 +15,15 @@ export default registerAs('database', () => {
     if (!process.env.DATABASE_URL) {
       throw new Error('DATABASE_URL is required in production environment');
     }
+
+    // Extract database name from DATABASE_URL to use as schema
+    const url = new URL(process.env.DATABASE_URL);
+    const databaseName = url.pathname.slice(1); // Remove leading slash
     
     return {
       type: 'postgres',
       url: process.env.DATABASE_URL,
+      schema: databaseName,
       entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
       synchronize: false,
       logging: true,
