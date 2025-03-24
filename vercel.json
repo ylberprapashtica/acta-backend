@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "buildEnvironment": {
-    "NODE_ENV": "production",
-    "DATABASE_URL": "${DATABASE_URL}"
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "DATABASE_URL": "${DATABASE_URL}",
+      "SCHEMA_NAME": "${SCHEMA_NAME}"
+    }
   },
   "builds": [
     {
