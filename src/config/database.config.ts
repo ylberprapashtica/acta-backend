@@ -8,11 +8,7 @@ export default registerAs('database', () => {
   if (isProduction) {
     return {
       type: 'postgres',
-      host: process.env.SUPABASE_URL,
-      port: 5432,
-      username: 'postgres',
-      password: process.env.SUPABASE_SERVICE_ROLE_KEY,
-      database: 'postgres', // Supabase uses 'postgres' as the default database name
+      url: process.env.SUPABASE_URL,
       entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
       synchronize: false,
       logging: false,
