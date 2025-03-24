@@ -21,6 +21,8 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { TenantModule } from './tenant/tenant.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -46,8 +48,10 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
       },
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([User]),
     AuthModule,
-    UsersModule,
+    TenantModule,
+    UserModule,
     CompanyModule,
     ArticleModule,
     InvoiceModule,
