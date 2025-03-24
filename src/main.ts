@@ -5,9 +5,11 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { config } from 'dotenv';
 
-// Load the appropriate .env file based on NODE_ENV
-const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
-config({ path: envFile });
+// Only load .env file if we're not in production or if DATABASE_URL is not set
+if (process.env.NODE_ENV !== 'production' || !process.env.DATABASE_URL) {
+  const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+  config({ path: envFile });
+}
 
 let app: NestExpressApplication;
 
@@ -17,7 +19,7 @@ async function bootstrap() {
       NODE_ENV: process.env.NODE_ENV,
       PORT: process.env.PORT,
       DATABASE_URL: process.env.DATABASE_URL ? '***' : undefined,
-      envFile
+      hasDatabaseUrl: !!process.env.DATABASE_URL
     });
 
     app = await NestFactory.create<NestExpressApplication>(AppModule);
