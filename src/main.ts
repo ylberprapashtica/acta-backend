@@ -5,10 +5,9 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { config } from 'dotenv';
 
-// Only load .env file if we're not in production or if DATABASE_URL is not set
-if (process.env.NODE_ENV !== 'production' || !process.env.DATABASE_URL) {
-  const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
-  config({ path: envFile });
+// Only load .env file if DATABASE_URL is not set
+if (!process.env.DATABASE_URL) {
+  config({ path: '.env' });
 }
 
 let app: NestExpressApplication;

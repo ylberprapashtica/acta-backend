@@ -6,7 +6,7 @@ export default registerAs('database', () => {
   
   console.log('Database Configuration:', {
     isProduction,
-    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    hasDatabaseUrl: process.env.DATABASE_URL,
     nodeEnv: process.env.NODE_ENV
   });
   
