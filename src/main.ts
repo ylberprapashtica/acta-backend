@@ -13,6 +13,13 @@ let app: NestExpressApplication;
 
 async function bootstrap() {
   if (!app) {
+    console.log('Starting application with environment:', {
+      NODE_ENV: process.env.NODE_ENV,
+      PORT: process.env.PORT,
+      DATABASE_URL: process.env.DATABASE_URL ? '***' : undefined,
+      envFile
+    });
+
     app = await NestFactory.create<NestExpressApplication>(AppModule);
     app.useGlobalPipes(new ValidationPipe());
     
@@ -24,19 +31,18 @@ async function bootstrap() {
       credentials: true,
     });
     
-    // Log environment variables (excluding sensitive data)
-    console.log('Environment:', {
-      NODE_ENV: process.env.NODE_ENV,
-      PORT: process.env.PORT,
-      DATABASE_URL: process.env.DATABASE_URL ? '***' : undefined,
-    });
-    
-    if (process.env.NODE_ENV !== 'production') {
-      await app.listen(process.env.PORT || 3000);
-    }
+    // Always listen in production
+    const port = process.env.PORT || 3000;
+    await app.listen(port);
+    console.log(`Application is running on port ${port}`);
   }
   return app;
 }
+
+bootstrap().catch(error => {
+  console.error('Failed to start application:', error);
+  process.exit(1);
+});
 
 // Export handler for Vercel
 export default async (req: any, res: any) => {

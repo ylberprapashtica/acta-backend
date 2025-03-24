@@ -4,14 +4,24 @@ import { join } from 'path';
 export default registerAs('database', () => {
   const isProduction = process.env.NODE_ENV === 'production';
   
+  console.log('Database Configuration:', {
+    isProduction,
+    hasDatabaseUrl: !!process.env.DATABASE_URL,
+    nodeEnv: process.env.NODE_ENV
+  });
+  
   // Production configuration (Supabase)
   if (isProduction) {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL is required in production environment');
+    }
+    
     return {
       type: 'postgres',
       url: process.env.DATABASE_URL,
       entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
       synchronize: false,
-      logging: false,
+      logging: true,
       ssl: {
         rejectUnauthorized: false
       },
