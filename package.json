@@ -17,7 +17,11 @@
     "seed": "ts-node src/database/seeds/seed.ts",
     "typeorm": "ts-node ./node_modules/typeorm/cli",
     "migration:run": "npm run typeorm migration:run -- -d ./src/config/data-source.ts",
-    "migration:revert": "npm run typeorm migration:revert -- -d ./src/config/data-source.ts"
+    "migration:revert": "npm run typeorm migration:revert -- -d ./src/config/data-source.ts",
+    "vercel-build": "npm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [],
   "author": "",

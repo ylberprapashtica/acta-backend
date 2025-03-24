@@ -50,4 +50,10 @@ const appPromise = bootstrap().catch(err => {
 });
 
 // Export the app instance for Vercel
-export default appPromise; 
+export default appPromise;
+
+// Export a handler for Vercel
+export const handler = async (req: any, res: any) => {
+  const app = await appPromise;
+  return app.handle(req, res);
+}; 
