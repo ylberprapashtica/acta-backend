@@ -3,6 +3,11 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { config } from 'dotenv';
+
+// Load the appropriate .env file based on NODE_ENV
+const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+config({ path: envFile });
 
 let app: NestExpressApplication;
 
@@ -23,8 +28,7 @@ async function bootstrap() {
     console.log('Environment:', {
       NODE_ENV: process.env.NODE_ENV,
       PORT: process.env.PORT,
-      DATABASE_HOST: process.env.POSTGRES_HOST,
-      DATABASE_PORT: process.env.POSTGRES_PORT,
+      DATABASE_URL: process.env.DATABASE_URL ? '***' : undefined,
     });
     
     if (process.env.NODE_ENV !== 'production') {

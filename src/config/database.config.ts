@@ -8,7 +8,7 @@ export default registerAs('database', () => {
   if (isProduction) {
     return {
       type: 'postgres',
-      url: process.env.SUPABASE_URL,
+      url: process.env.DATABASE_URL,
       entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
       synchronize: false,
       logging: false,
