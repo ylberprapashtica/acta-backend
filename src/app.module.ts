@@ -25,7 +25,7 @@ import { DataSource } from 'typeorm';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
-        const schemaName = process.env.SCHEMA_NAME || 'acta_foughtsave';
+        const schemaName = process.env.SCHEMA_NAME || 'public';
         
         // Base configuration
         const config = {
