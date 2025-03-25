@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Invoice #{{invoiceNumber}}</title>
+    <title>Invoice #{{invoice.invoiceNumber}}</title>
     <style>
         @page {
             size: A4;
@@ -12,13 +12,13 @@
             font-family: 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
-            color: #333;
+            color: #000000;
             font-size: 12px;
             line-height: 1.5;
         }
         .header {
-            background-color: #2563eb;
-            color: white;
+            background-color: #f1f5f9;
+            color: #000000;
             padding: 40px;
             margin-bottom: 40px;
         }
@@ -36,9 +36,15 @@
             font-size: 28px;
             font-weight: bold;
             margin-bottom: 10px;
+            color: #000000;
+        }
+        .company-trade-name {
+            font-size: 14px;
+            color: #000000;
+            margin-bottom: 5px;
         }
         .company-address {
-            opacity: 0.9;
+            color: #000000;
             margin-bottom: 5px;
         }
         .invoice-info {
@@ -48,14 +54,15 @@
             font-size: 32px;
             font-weight: bold;
             margin-bottom: 10px;
+            color: #000000;
         }
         .invoice-number {
             font-size: 18px;
-            opacity: 0.9;
+            color: #000000;
             margin-bottom: 5px;
         }
         .invoice-date {
-            opacity: 0.9;
+            color: #000000;
         }
         .content {
             max-width: 800px;
@@ -64,14 +71,14 @@
         }
         .recipient-section {
             margin-bottom: 40px;
-            background-color: #f8fafc;
+            /* background-color: #f8fafc; */
             padding: 20px;
             border-radius: 8px;
         }
         .section-title {
             font-size: 14px;
             font-weight: bold;
-            color: #64748b;
+            color: #000000;
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -79,11 +86,16 @@
         .recipient-name {
             font-size: 18px;
             font-weight: bold;
-            color: #1e293b;
+            color: #000000;
+            margin-bottom: 5px;
+        }
+        .recipient-trade-name {
+            font-size: 14px;
+            color: #000000;
             margin-bottom: 5px;
         }
         .recipient-address {
-            color: #64748b;
+            color: #000000;
         }
         table {
             width: 100%;
@@ -92,7 +104,7 @@
         }
         th {
             background-color: #f1f5f9;
-            color: #64748b;
+            color: #000000;
             font-weight: 600;
             text-align: left;
             padding: 12px;
@@ -104,7 +116,7 @@
         td {
             padding: 16px 12px;
             border-bottom: 1px solid #e2e8f0;
-            color: #1e293b;
+            color: #000000;
         }
         .text-right {
             text-align: right;
@@ -122,29 +134,39 @@
         }
         .total-label {
             width: 150px;
-            color: #64748b;
+            color: #000000;
             font-weight: 500;
         }
         .total-value {
             width: 120px;
             font-weight: bold;
-            color: #1e293b;
+            color: #000000;
             font-size: 14px;
         }
         .footer {
             margin-top: 50px;
             padding-top: 20px;
             border-top: 2px solid #e2e8f0;
-            color: #64748b;
+            color: #000000;
             font-size: 10px;
         }
         .vat-info {
-            margin-top: 20px;
             font-size: 10px;
-            color: #64748b;
+            color: #000000;
             background-color: #f8fafc;
-            padding: 15px;
+            padding: 5px;
             border-radius: 8px;
+        }
+        .company-details, .recipient-details {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #000000;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+        .company-details div, .recipient-details div {
+            margin-bottom: 3px;
         }
     </style>
 </head>
@@ -152,13 +174,26 @@
     <div class="header">
         <div class="header-content">
             <div class="company-info">
-                <div class="company-name">{{issuer.businessName}}</div>
-                <div class="company-address">{{issuer.address}}</div>
+                <div class="company-name">{{invoice.issuer.businessName}}</div>
+                <div class="company-trade-name">{{invoice.issuer.tradeName}}</div>
+                <div class="company-address">{{invoice.issuer.address}}</div>
+                <div class="company-details">
+                    <div>Business Type: {{invoice.issuer.businessType}}</div>
+                    <div>Identification Number: {{invoice.issuer.uniqueIdentificationNumber}}</div>
+                    <div>Business Number: {{invoice.issuer.businessNumber}}</div>
+                    <div>Fiscal Number: {{invoice.issuer.fiscalNumber}}</div>
+                    <div>VAT Number: {{invoice.issuer.vatNumber}}</div>
+                    <div>Registration Date: {{formatDate invoice.issuer.registrationDate}}</div>
+                    <div>Municipality: {{invoice.issuer.municipality}}</div>
+                    <div>Phone: {{invoice.issuer.phoneNumber}}</div>
+                    <div>Email: {{invoice.issuer.email}}</div>
+                    <div>Bank Account: {{invoice.issuer.bankAccount}}</div>
+                </div>
             </div>
             <div class="invoice-info">
                 <div class="invoice-title">INVOICE</div>
-                <div class="invoice-number">#{{invoiceNumber}}</div>
-                <div class="invoice-date">Issue Date: {{formatDate issueDate}}</div>
+                <div class="invoice-number">#{{invoice.invoiceNumber}}</div>
+                <div class="invoice-date">Issue Date: {{formatDate invoice.issueDate}}</div>
             </div>
         </div>
     </div>
@@ -166,27 +201,46 @@
     <div class="content">
         <div class="recipient-section">
             <div class="section-title">Bill To:</div>
-            <div class="recipient-name">{{recipient.businessName}}</div>
-            <div class="recipient-address">{{recipient.address}}</div>
+            <div class="recipient-name">{{invoice.recipient.businessName}}</div>
+            <div class="recipient-trade-name">{{invoice.recipient.tradeName}}</div>
+            <div class="recipient-address">{{invoice.recipient.address}}</div>
+            <div class="recipient-details">
+                <div>Business Type: {{invoice.recipient.businessType}}</div>
+                <div>Identification Number: {{invoice.recipient.uniqueIdentificationNumber}}</div>
+                <div>Business Number: {{invoice.recipient.businessNumber}}</div>
+                <div>Fiscal Number: {{invoice.recipient.fiscalNumber}}</div>
+                <div>VAT Number: {{invoice.recipient.vatNumber}}</div>
+                <div>Registration Date: {{formatDate invoice.recipient.registrationDate}}</div>
+                <div>Municipality: {{invoice.recipient.municipality}}</div>
+                <div>Phone: {{invoice.recipient.phoneNumber}}</div>
+                <div>Email: {{invoice.recipient.email}}</div>
+                <div>Bank Account: {{invoice.recipient.bankAccount}}</div>
+            </div>
         </div>
 
         <table>
             <thead>
                 <tr>
                     <th>Article</th>
+                    <th>Code</th>
+                    <th>Unit</th>
                     <th class="text-right">Quantity</th>
                     <th class="text-right">Unit Price</th>
                     <th class="text-right">Total Price</th>
-                    <th class="text-right">VAT</th>
+                    <th class="text-right">VAT %</th>
+                    <th class="text-right">VAT Amount</th>
                 </tr>
             </thead>
             <tbody>
-                {{#each items}}
+                {{#each invoice.items}}
                 <tr>
                     <td>{{this.article.name}}</td>
+                    <td>{{this.article.code}}</td>
+                    <td>{{this.article.unit}}</td>
                     <td class="text-right">{{this.quantity}}</td>
                     <td class="text-right">€{{formatNumber this.unitPrice}}</td>
                     <td class="text-right">€{{formatNumber this.totalPrice}}</td>
+                    <td class="text-right">{{this.article.vatCode}}%</td>
                     <td class="text-right">€{{formatNumber this.vatAmount}}</td>
                 </tr>
                 {{/each}}
@@ -196,21 +250,16 @@
         <div class="totals-section">
             <div class="total-row">
                 <div class="total-label">Total Amount:</div>
-                <div class="total-value">€{{formatNumber totalAmount}}</div>
+                <div class="total-value">€{{formatNumber invoice.totalAmount}}</div>
             </div>
             <div class="total-row">
                 <div class="total-label">Total VAT:</div>
-                <div class="total-value">€{{formatNumber totalVat}}</div>
+                <div class="total-value">€{{formatNumber invoice.totalVat}}</div>
             </div>
         </div>
 
-        <div class="footer">
-            <p>Thank you for your business!</p>
-            <p>This is a computer-generated document. No signature is required.</p>
-        </div>
-
         <div class="vat-info">
-            <p>VAT Registration Number: {{issuer.vatNumber}}</p>
+            <p>VAT Registration Number: {{invoice.issuer.vatNumber}}</p>
             <p>This invoice is subject to VAT regulations.</p>
         </div>
     </div>

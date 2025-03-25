@@ -203,25 +203,10 @@ export class InvoiceService {
 
     const template = await this.loadTemplate('base.html');
     const html = template({
-      invoiceNumber: invoice.invoiceNumber,
-      issueDate: new Date(invoice.issueDate).toLocaleDateString(),
-      dueDate: new Date(invoice.dueDate).toLocaleDateString(),
-      issuer: {
-        businessName: invoice.issuer.businessName,
-        details: this.formatCompanyDetails(invoice.issuer)
-      },
-      recipient: {
-        businessName: invoice.recipient.businessName,
-        details: this.formatCompanyDetails(invoice.recipient)
-      },
-      items: invoice.items.map(item => ({
-        article: item.article,
-        quantity: item.quantity,
-        unitPrice: Number(item.unitPrice).toFixed(2),
-        totalPrice: Number(item.totalPrice).toFixed(2)
-      })),
-      totalAmount: Number(invoice.totalAmount).toFixed(2),
-      totalVat: Number(invoice.totalVat).toFixed(2)
+      invoice: invoice,
+      issuer: invoice.issuer,
+      recipient: invoice.recipient,
+      items: invoice.items,
     });
 
     const browser = await puppeteer.launch({
