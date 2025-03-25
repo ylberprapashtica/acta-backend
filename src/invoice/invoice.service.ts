@@ -9,7 +9,8 @@ import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as Handlebars from 'handlebars';
-import * as puppeteer from 'puppeteer';
+import * as puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 // Register Handlebars helpers
 Handlebars.registerHelper('formatDate', function(date: string | Date) {
@@ -195,45 +196,40 @@ export class InvoiceService {
     };
   }
 
-  async generatePdf(id: number, authorizationHeader?: string): Promise<Buffer> {
-    const invoice = await this.getInvoice(id);
+  async generatePdf(invoiceId: number): Promise<Buffer> {
+    const invoice = await this.invoiceRepository.findOne({
+      where: { id: invoiceId },
+      relations: ['items', 'items.article', 'issuer', 'recipient'],
+    });
+
     if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${id} not found`);
+      throw new NotFoundException(`Invoice with ID ${invoiceId} not found`);
     }
 
     const template = await this.loadTemplate('base.html');
-    const html = template({
-      invoice: invoice,
-      issuer: invoice.issuer,
-      recipient: invoice.recipient,
-      items: invoice.items,
-    });
+    const html = template(invoice);
 
+    // Configure chromium for serverless environment
+    const executablePath = await chromium.executablePath();
     const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath,
+      headless: chromium.headless,
     });
 
     try {
       const page = await browser.newPage();
-      
-      // Set authorization header if provided
-      if (authorizationHeader) {
-        await page.setExtraHTTPHeaders({
-          'Authorization': authorizationHeader
-        });
-      }
-
       await page.setContent(html);
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
         margin: {
-          top: '50px',
-          right: '50px',
-          bottom: '50px',
-          left: '50px'
-        }
+          top: '20px',
+          right: '20px',
+          bottom: '20px',
+          left: '20px',
+        },
       });
       return Buffer.from(pdfBuffer);
     } finally {
