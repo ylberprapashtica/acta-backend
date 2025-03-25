@@ -47,12 +47,14 @@ export default registerAs('database', () => {
     database: process.env.POSTGRES_DB || 'acta_db',
     schema: process.env.SCHEMA_NAME || 'acta_foughtsave',
     entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
-    synchronize: true,
+    synchronize: false,
     logging: true,
     ssl: false,
     extra: {
-      max: 20,
-      statement_timeout: 10000
+      max: 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 20000,
+      statement_timeout: 30000
     }
   };
 }); 
