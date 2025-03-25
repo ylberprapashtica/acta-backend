@@ -62,6 +62,9 @@ export default async function handler(req: any, res: any) {
     console.log('Incoming request:', {
       method: req.method,
       url: req.url,
+      path: req.path,
+      baseUrl: req.baseUrl,
+      originalUrl: req.originalUrl,
       headers: req.headers,
       body: req.body
     });
@@ -72,6 +75,19 @@ export default async function handler(req: any, res: any) {
     }
 
     const app = await bootstrap();
+    
+    // Log available routes
+    const server = app.getHttpServer();
+    const router = server._events.request._router;
+    console.log('Available routes:', {
+      routes: router.stack
+        .filter((layer: any) => layer.route)
+        .map((layer: any) => ({
+          path: layer.route?.path,
+          methods: layer.route?.methods
+        }))
+    });
+
     const expressApp = app.getHttpAdapter().getInstance() as Express;
     
     // Add error handling for the express app

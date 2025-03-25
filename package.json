@@ -2,10 +2,10 @@
   "name": "acta-backend",
   "version": "1.0.0",
   "description": "Acta Backend API",
-  "main": "dist/main.js",
+  "main": "src/main.ts",
   "scripts": {
     "build": "nest build",
-    "vercel-build": "npm run build",
+    "vercel-build": "echo 'Skipping build on Vercel'",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",
