@@ -22,15 +22,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   
   // Configure CORS
-  const allowedOrigins = process.env.NODE_ENV === 'production'
-    ? ['https://acta-frontend.vercel.app', 'https://acta-frontend-ylberprapashtica.vercel.app']
-    : ['http://localhost:5173', 'http://127.0.0.1:5173', 'https://acta-frontend.vercel.app', 'https://acta-frontend-ylberprapashtica.vercel.app'];
-
-  console.log('Allowed Origins:', allowedOrigins);
-  console.log('Current Environment:', process.env.NODE_ENV);
-
   app.enableCors({
-    origin: allowedOrigins,
+    origin: true, // Allow all origins
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'X-Tenant-ID'],
     exposedHeaders: ['Authorization'],
