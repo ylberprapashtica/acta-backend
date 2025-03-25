@@ -4,7 +4,7 @@
   "description": "Acta Backend API",
   "main": "src/main.ts",
   "scripts": {
-    "build": "nest build",
+    "build": "./node_modules/.bin/nest build",
     "vercel-build": "npm install && npm run build",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
