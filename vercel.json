@@ -3,12 +3,7 @@
   "builds": [
     {
       "src": "src/main.ts",
-      "use": "@vercel/node",
-      "config": {
-        "buildCommand": "npm run vercel-build",
-        "outputDirectory": "dist",
-        "nodeVersion": "18.x"
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
