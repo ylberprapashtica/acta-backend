@@ -24,6 +24,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TenantModule } from './tenant/tenant.module';
 import { UserModule } from './user/user.module';
 import { MigrationService } from './database/migration.service';
+import { MigrationController } from './database/migration.controller';
 
 @Module({
   imports: [
@@ -57,7 +58,7 @@ import { MigrationService } from './database/migration.service';
     ArticleModule,
     InvoiceModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, MigrationController],
   providers: [
     AppService,
     LoggerService,
