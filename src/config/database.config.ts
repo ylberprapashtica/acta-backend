@@ -27,7 +27,9 @@ export default registerAs('database', () => {
       entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
       synchronize: false,
       logging: true,
-      ssl: false,
+      ssl: {
+        rejectUnauthorized: true
+      },
       extra: {
         max: 5,
         idleTimeoutMillis: 30000,
