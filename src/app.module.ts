@@ -23,8 +23,6 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TenantModule } from './tenant/tenant.module';
 import { UserModule } from './user/user.module';
-import { MigrationService } from './database/migration.service';
-import { MigrationController } from './database/migration.controller';
 
 @Module({
   imports: [
@@ -41,7 +39,6 @@ import { MigrationController } from './database/migration.controller';
         const config = {
           ...configService.get('database'),
           entities: [User, Company, Article, Invoice, InvoiceItem, Tenant],
-          migrationsRun: true,
           schema: schemaName,
           synchronize: false
         };
@@ -58,7 +55,7 @@ import { MigrationController } from './database/migration.controller';
     ArticleModule,
     InvoiceModule,
   ],
-  controllers: [AppController, MigrationController],
+  controllers: [AppController],
   providers: [
     AppService,
     LoggerService,
@@ -74,7 +71,6 @@ import { MigrationController } from './database/migration.controller';
       provide: APP_GUARD,
       useClass: TenantGuard,
     },
-    MigrationService,
   ],
 })
 export class AppModule {} 
