@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { config } from 'dotenv';
+import { DataSource } from 'typeorm';
 
 // Only load .env file if DATABASE_URL is not set
 if (!process.env.DATABASE_URL) {
@@ -16,7 +17,7 @@ async function bootstrap() {
   if (!app) {
     console.log('Starting application with environment:', {
       NODE_ENV: process.env.NODE_ENV,
-      DATABASE_URL: process.env.DATABASE_URL
+      DATABASE_URL: process.env.DATABASE_URL ? '***' : undefined
     });
 
     app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -50,38 +51,12 @@ async function bootstrap() {
   return app;
 }
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  bootstrap().catch(error => {
-    console.error('Failed to start application:', error);
-    process.exit(1);
-  });
-}
+// Export the bootstrap function for local development
+export default bootstrap;
 
-// Export handler for Vercel
-export default async function handler(req: any, res: any) {
-  try {
-    console.log('Incoming request:', {
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-      body: req.body
-    });
-
-    if (req.method === 'OPTIONS') {
-      res.status(200).end();
-      return;
-    }
-
-    const app = await bootstrap();
-    const expressApp = app.getHttpAdapter().getInstance() as Express;
-    return expressApp(req, res);
-  } catch (error) {
-    console.error('Error handling request:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error',
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-} 
+// Export the app for serverless environments
+export const handler = async (req: any, res: any) => {
+  const instance = await bootstrap();
+  const expressApp = instance.getHttpAdapter().getInstance();
+  return expressApp(req, res);
+}; 
