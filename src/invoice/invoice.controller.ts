@@ -43,10 +43,9 @@ export class InvoiceController {
   @Get(':id/pdf')
   async downloadPdf(
     @Param('id') id: string,
-    @Headers('authorization') authorization: string,
     @Res() res: Response
   ) {
-    const buffer = await this.invoiceService.generatePdf(+id, authorization);
+    const buffer = await this.invoiceService.generatePdf(+id);
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="invoice-${id}.pdf"`,
