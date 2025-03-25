@@ -5,7 +5,7 @@
   "main": "src/main.ts",
   "scripts": {
     "build": "nest build",
-    "vercel-build": "echo 'Skipping build on Vercel'",
+    "vercel-build": "npm run build && npm run migration:run",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",

@@ -35,8 +35,8 @@ async function bootstrap() {
       credentials: true,
     });
 
-    // Set global prefix for all routes
-    app.setGlobalPrefix('');
+    // Initialize the application
+    await app.init();
     
     // Only listen when not in production (local development)
     if (process.env.NODE_ENV !== 'production') {
@@ -62,9 +62,6 @@ export default async function handler(req: any, res: any) {
     console.log('Incoming request:', {
       method: req.method,
       url: req.url,
-      path: req.path,
-      baseUrl: req.baseUrl,
-      originalUrl: req.originalUrl,
       headers: req.headers,
       body: req.body
     });
@@ -75,27 +72,7 @@ export default async function handler(req: any, res: any) {
     }
 
     const app = await bootstrap();
-    
-    // Log available routes
-    const server = app.getHttpServer();
-    const router = server._events.request._router;
-    console.log('Available routes:', {
-      routes: router.stack
-        .filter((layer: any) => layer.route)
-        .map((layer: any) => ({
-          path: layer.route?.path,
-          methods: layer.route?.methods
-        }))
-    });
-
     const expressApp = app.getHttpAdapter().getInstance() as Express;
-    
-    // Add error handling for the express app
-    expressApp.use((err: any, _req: any, _res: any, next: any) => {
-      console.error('Express error:', err);
-      next(err);
-    });
-
     return expressApp(req, res);
   } catch (error) {
     console.error('Error handling request:', error);
