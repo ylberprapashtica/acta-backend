@@ -103,7 +103,11 @@ export class InvoiceService {
     const totalAmount = invoiceItems.reduce((sum, item) => sum + item.totalPrice, 0);
     const totalVat = invoiceItems.reduce((sum, item) => sum + item.vatAmount, 0);
 
-    const issueDate = data.issueDate || new Date();
+    const issueDate = data.issueDate 
+      ? typeof data.issueDate === 'string' 
+        ? new Date(data.issueDate)
+        : data.issueDate
+      : new Date();
     
     // Create and save invoice with totals
     const invoice = this.invoiceRepository.create({
