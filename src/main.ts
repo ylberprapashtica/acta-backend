@@ -27,7 +27,9 @@ async function bootstrap() {
     
     // Configure CORS
     app.enableCors({
-      origin: '*',
+      origin: process.env.NODE_ENV === 'production' 
+        ? 'https://acta-frontend.vercel.app'
+        : '*',
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
       allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
       credentials: true,
@@ -60,7 +62,8 @@ export default async function handler(req: any, res: any) {
     console.log('Incoming request:', {
       method: req.method,
       url: req.url,
-      headers: req.headers
+      headers: req.headers,
+      body: req.body // Add body logging for debugging
     });
 
     const app = await bootstrap();
