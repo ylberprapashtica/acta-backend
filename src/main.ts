@@ -32,6 +32,9 @@ async function bootstrap() {
       allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
       credentials: true,
     });
+
+    // Set global prefix for all routes
+    app.setGlobalPrefix('');
     
     // Only listen when not in production (local development)
     if (process.env.NODE_ENV !== 'production') {
@@ -54,6 +57,12 @@ if (process.env.NODE_ENV !== 'production') {
 // Export handler for Vercel
 export default async function handler(req: any, res: any) {
   try {
+    console.log('Incoming request:', {
+      method: req.method,
+      url: req.url,
+      headers: req.headers
+    });
+
     const app = await bootstrap();
     const expressApp = app.getHttpAdapter().getInstance() as Express;
     return expressApp(req, res);
