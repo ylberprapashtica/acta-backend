@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Res, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Res, Query, Headers } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { Response } from 'express';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
@@ -41,8 +41,12 @@ export class InvoiceController {
   }
 
   @Get(':id/pdf')
-  async downloadPdf(@Param('id') id: string, @Res() res: Response) {
-    const buffer = await this.invoiceService.generatePdf(+id);
+  async downloadPdf(
+    @Param('id') id: string,
+    @Headers('authorization') authorization: string,
+    @Res() res: Response
+  ) {
+    const buffer = await this.invoiceService.generatePdf(+id, authorization);
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="invoice-${id}.pdf"`,

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{invoiceNumber}}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .header {
+            background-color: #2563eb;
+            color: white;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .company-info {
+            flex: 1;
+        }
+        .company-name {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .company-address {
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .invoice-info {
+            text-align: right;
+        }
+        .invoice-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .invoice-number {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .invoice-date {
+            opacity: 0.9;
+        }
+        .content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+        .recipient-section {
+            margin-bottom: 40px;
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #64748b;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .recipient-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        .recipient-address {
+            color: #64748b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th {
+            background-color: #f1f5f9;
+            color: #64748b;
+            font-weight: 600;
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .totals-section {
+            margin-top: 30px;
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+        .total-label {
+            width: 150px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .total-value {
+            width: 120px;
+            font-weight: bold;
+            color: #1e293b;
+            font-size: 14px;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            color: #64748b;
+            font-size: 10px;
+        }
+        .vat-info {
+            margin-top: 20px;
+            font-size: 10px;
+            color: #64748b;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="company-info">
+                <div class="company-name">{{issuer.businessName}}</div>
+                <div class="company-address">{{issuer.address}}</div>
+            </div>
+            <div class="invoice-info">
+                <div class="invoice-title">INVOICE</div>
+                <div class="invoice-number">#{{invoiceNumber}}</div>
+                <div class="invoice-date">Issue Date: {{formatDate issueDate}}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="recipient-section">
+            <div class="section-title">Bill To:</div>
+            <div class="recipient-name">{{recipient.businessName}}</div>
+            <div class="recipient-address">{{recipient.address}}</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Article</th>
+                    <th class="text-right">Quantity</th>
+                    <th class="text-right">Unit Price</th>
+                    <th class="text-right">Total Price</th>
+                    <th class="text-right">VAT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each items}}
+                <tr>
+                    <td>{{this.article.name}}</td>
+                    <td class="text-right">{{this.quantity}}</td>
+                    <td class="text-right">€{{formatNumber this.unitPrice}}</td>
+                    <td class="text-right">€{{formatNumber this.totalPrice}}</td>
+                    <td class="text-right">€{{formatNumber this.vatAmount}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+
+        <div class="totals-section">
+            <div class="total-row">
+                <div class="total-label">Total Amount:</div>
+                <div class="total-value">€{{formatNumber totalAmount}}</div>
+            </div>
+            <div class="total-row">
+                <div class="total-label">Total VAT:</div>
+                <div class="total-value">€{{formatNumber totalVat}}</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Thank you for your business!</p>
+            <p>This is a computer-generated document. No signature is required.</p>
+        </div>
+
+        <div class="vat-info">
+            <p>VAT Registration Number: {{issuer.vatNumber}}</p>
+            <p>This invoice is subject to VAT regulations.</p>
+        </div>
+    </div>
+</body>
+</html> 
