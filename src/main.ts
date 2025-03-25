@@ -28,14 +28,17 @@ async function bootstrap() {
     
     // Configure CORS
     const allowedOrigins = process.env.NODE_ENV === 'production'
-      ? ['https://acta-frontend.vercel.app']
+      ? ['https://acta-frontend.vercel.app', 'https://acta-frontend-ylberprapashtica.vercel.app']
       : ['http://localhost:5173', 'http://127.0.0.1:5173'];
 
     app.enableCors({
       origin: allowedOrigins,
-      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-      allowedHeaders: ['Content-Type', 'Accept', 'Authorization'],
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'X-Tenant-ID'],
+      exposedHeaders: ['Authorization'],
       credentials: true,
+      preflightContinue: false,
+      optionsSuccessStatus: 204
     });
 
     // Initialize the application
