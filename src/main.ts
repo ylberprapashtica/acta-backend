@@ -63,14 +63,30 @@ export default async function handler(req: any, res: any) {
       method: req.method,
       url: req.url,
       headers: req.headers,
-      body: req.body // Add body logging for debugging
+      body: req.body
     });
+
+    if (req.method === 'OPTIONS') {
+      res.status(200).end();
+      return;
+    }
 
     const app = await bootstrap();
     const expressApp = app.getHttpAdapter().getInstance() as Express;
+    
+    // Add error handling for the express app
+    expressApp.use((err: any, _req: any, _res: any, next: any) => {
+      console.error('Express error:', err);
+      next(err);
+    });
+
     return expressApp(req, res);
   } catch (error) {
     console.error('Error handling request:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ 
+      error: 'Internal Server Error',
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 } 
