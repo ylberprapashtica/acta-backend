@@ -5,17 +5,14 @@
   "installCommand": "npm install",
   "builds": [
     {
-      "src": "dist/main.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxDuration": 60
-      }
+      "src": "src/main.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js",
+      "dest": "src/main.ts",
       "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
       "headers": {
         "Access-Control-Allow-Credentials": "true",
