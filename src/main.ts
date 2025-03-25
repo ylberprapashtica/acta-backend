@@ -16,13 +16,13 @@ async function bootstrap() {
   if (!app) {
     console.log('Starting application with environment:', {
       NODE_ENV: process.env.NODE_ENV,
-      PORT: process.env.PORT,
       DATABASE_URL: process.env.DATABASE_URL
     });
 
     app = await NestFactory.create<NestExpressApplication>(AppModule, {
       logger: ['error', 'warn', 'debug', 'verbose'],
     });
+    
     app.useGlobalPipes(new ValidationPipe());
     
     // Configure CORS
@@ -33,22 +33,32 @@ async function bootstrap() {
       credentials: true,
     });
     
-    // Always listen in production
-    const port = process.env.PORT || 3000;
-    await app.listen(port);
-    console.log(`Application is running on port ${port}`);
+    // Only listen when not in production (local development)
+    if (process.env.NODE_ENV !== 'production') {
+      const port = process.env.PORT || 3000;
+      await app.listen(port);
+      console.log(`Application is running on port ${port}`);
+    }
   }
   return app;
 }
 
-bootstrap().catch(error => {
-  console.error('Failed to start application:', error);
-  process.exit(1);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  bootstrap().catch(error => {
+    console.error('Failed to start application:', error);
+    process.exit(1);
+  });
+}
 
 // Export handler for Vercel
-export default async (req: any, res: any) => {
-  const app = await bootstrap();
-  const expressApp = app.getHttpAdapter().getInstance() as Express;
-  return expressApp(req, res);
-}; 
+export default async function handler(req: any, res: any) {
+  try {
+    const app = await bootstrap();
+    const expressApp = app.getHttpAdapter().getInstance() as Express;
+    return expressApp(req, res);
+  } catch (error) {
+    console.error('Error handling request:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+} 
