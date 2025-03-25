@@ -23,6 +23,7 @@ import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { TenantModule } from './tenant/tenant.module';
 import { UserModule } from './user/user.module';
+import { MigrationService } from './database/migration.service';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { UserModule } from './user/user.module';
       provide: APP_GUARD,
       useClass: TenantGuard,
     },
+    MigrationService,
   ],
 })
 export class AppModule {} 

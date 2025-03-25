@@ -1,12 +1,5 @@
 {
   "version": 2,
-  "build": {
-    "env": {
-      "NODE_ENV": "production",
-      "DATABASE_URL": "${DATABASE_URL}",
-      "SCHEMA_NAME": "${SCHEMA_NAME}"
-    }
-  },
   "builds": [
     {
       "src": "src/main.ts",
