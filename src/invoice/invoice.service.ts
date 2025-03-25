@@ -40,7 +40,7 @@ export class InvoiceService {
       return this.templateCache[templateName];
     }
 
-    const templatePath = path.resolve(__dirname, 'invoice', 'templates', templateName);
+    const templatePath = path.resolve(__dirname, 'templates', templateName);
     const templateContent = await fs.promises.readFile(templatePath, 'utf-8');
     const template = Handlebars.compile(templateContent);
     this.templateCache[templateName] = template;
