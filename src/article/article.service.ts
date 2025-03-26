@@ -27,6 +27,7 @@ export class ArticleService {
       order: {
         name: 'ASC',
       },
+      relations: ['company'],
     });
 
     const lastPage = Math.ceil(total / limit);
@@ -43,7 +44,10 @@ export class ArticleService {
   }
 
   async findOne(id: number): Promise<Article> {
-    const article = await this.articleRepository.findOne({ where: { id } });
+    const article = await this.articleRepository.findOne({ 
+      where: { id },
+      relations: ['company'],
+    });
     if (!article) {
       throw new NotFoundException(`Article with ID ${id} not found`);
     }

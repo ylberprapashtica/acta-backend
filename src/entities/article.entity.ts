@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm';
 import { InvoiceItem } from './invoice-item.entity';
+import { Company } from '../company/entities/company.entity';
 
 export enum VatCode {
   ZERO = 0,
@@ -30,6 +31,12 @@ export class Article {
 
   @Column('decimal', { precision: 10, scale: 2 })
   basePrice: number;
+
+  @ManyToOne(() => Company, (company: Company) => company.articles, { nullable: false })
+  company: Company;
+
+  @Column('uuid', { nullable: false })
+  companyId: string;
 
   @OneToMany(() => InvoiceItem, (invoiceItem) => invoiceItem.article)
   invoiceItems: InvoiceItem[];

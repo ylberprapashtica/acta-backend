@@ -11,7 +11,27 @@ import { BusinessType } from '../../company/entities/company.entity';
 import { VatCode } from '../../entities/article.entity';
 import { faker } from '@faker-js/faker';
 
-async function bootstrap() {
+interface SeedOptions {
+  numberOfCompanies: number;
+  articlesPerCompany: number;
+  invoicesPerCompany: number;
+  itemsPerInvoice: {
+    min: number;
+    max: number;
+  };
+}
+
+const defaultOptions: SeedOptions = {
+  numberOfCompanies: 5,
+  articlesPerCompany: 5,
+  invoicesPerCompany: 5,
+  itemsPerInvoice: {
+    min: 1,
+    max: 3,
+  },
+};
+
+async function bootstrap(options: SeedOptions = defaultOptions) {
   const app = await NestFactory.createApplicationContext(AppModule);
   
   const companyRepository = app.get<Repository<Company>>(getRepositoryToken(Company));
@@ -23,11 +43,11 @@ async function bootstrap() {
   await articleRepository.delete({});
   await companyRepository.delete({});
 
-  console.log('Starting seed process...');
+  console.log('Starting seed process with options:', options);
 
-  // Create 10 companies
+  // Create companies
   const companies: Company[] = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < options.numberOfCompanies; i++) {
     const company = companyRepository.create({
       businessName: faker.company.name(),
       tradeName: faker.company.name(),
@@ -43,67 +63,81 @@ async function bootstrap() {
       email: faker.internet.email(),
       bankAccount: faker.finance.accountNumber(),
     });
-    companies.push(await companyRepository.save(company));
-    console.log(`Created company ${i + 1}/10`);
+    const savedCompany = await companyRepository.save(company);
+    companies.push(savedCompany);
+    console.log(`Created company ${i + 1}/${options.numberOfCompanies}: ${savedCompany.businessName}`);
   }
 
-  // Create 100 articles for each company
+  // Create articles for each company
   const articlesMap = new Map<string, Article[]>();
   for (const company of companies) {
     const articles: Article[] = [];
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < options.articlesPerCompany; i++) {
       const article = articleRepository.create({
         name: faker.commerce.productName(),
         unit: faker.helpers.arrayElement(['piece', 'kg', 'liter', 'meter', 'hour']),
         code: faker.string.alphanumeric(6).toUpperCase(),
         vatCode: faker.helpers.arrayElement([VatCode.ZERO, VatCode.EIGHT, VatCode.EIGHTEEN]),
         basePrice: parseFloat(faker.commerce.price({ min: 10, max: 1000 })),
+        companyId: company.id,
       });
-      articles.push(await articleRepository.save(article));
+      const savedArticle = await articleRepository.save(article);
+      articles.push(savedArticle);
     }
     articlesMap.set(company.id, articles);
-    console.log(`Created 100 articles for company ${company.businessName}`);
+    console.log(`Created ${options.articlesPerCompany} articles for company ${company.businessName}`);
   }
 
-  // Create 100 invoices for each company
+  // Create invoices for each company
   for (const issuer of companies) {
     const issuerArticles = articlesMap.get(issuer.id) || [];
     
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < options.invoicesPerCompany; i++) {
       // Select a random recipient (different from issuer)
       const recipient = faker.helpers.arrayElement(
         companies.filter(c => c.id !== issuer.id)
       );
 
-      // Generate 1-10 random items for the invoice
-      const itemCount = faker.number.int({ min: 1, max: 10 });
-      const items = Array.from({ length: itemCount }, () => {
+      // Generate random items for the invoice
+      const itemCount = faker.number.int({ 
+        min: options.itemsPerInvoice.min, 
+        max: options.itemsPerInvoice.max 
+      });
+
+      const items = [];
+      for (let j = 0; j < itemCount; j++) {
         const article = faker.helpers.arrayElement(issuerArticles);
-        return {
+        items.push({
           articleId: article.id,
           quantity: faker.number.int({ min: 1, max: 10 }),
-          unitPrice: parseFloat(faker.commerce.price({ min: article.basePrice, max: article.basePrice * 1.5 })),
-        };
-      });
+          unitPrice: article.basePrice,
+        });
+      }
 
       await invoiceService.createInvoice({
         issuerId: issuer.id,
         recipientId: recipient.id,
         items,
-        issueDate: faker.date.between({ 
-          from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), 
-          to: new Date() 
-        }),
+        issueDate: faker.date.past(),
       });
     }
-    console.log(`Created 100 invoices for company ${issuer.businessName}`);
+    console.log(`Created ${options.invoicesPerCompany} invoices for company ${issuer.businessName}`);
   }
 
-  console.log('Seed completed successfully!');
   await app.close();
+  console.log('Seed completed successfully');
 }
 
-bootstrap().catch(error => {
-  console.error('Seed failed:', error);
-  process.exit(1);
-}); 
+// Get command line arguments
+const args = process.argv.slice(2);
+const options: SeedOptions = {
+  numberOfCompanies: parseInt(args[0]) || defaultOptions.numberOfCompanies,
+  articlesPerCompany: parseInt(args[1]) || defaultOptions.articlesPerCompany,
+  invoicesPerCompany: parseInt(args[2]) || defaultOptions.invoicesPerCompany,
+  itemsPerInvoice: {
+    min: parseInt(args[3]) || defaultOptions.itemsPerInvoice.min,
+    max: parseInt(args[4]) || defaultOptions.itemsPerInvoice.max,
+  },
+};
+
+bootstrap(options).catch(console.error); 
