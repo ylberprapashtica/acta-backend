@@ -28,7 +28,7 @@ export default registerAs('database', () => {
       synchronize: false,
       logging: true,
       ssl: {
-        rejectUnauthorized: true
+        rejectUnauthorized: false
       },
       extra: {
         max: 5,
