@@ -4,7 +4,8 @@
   "description": "Acta Backend API",
   "main": "src/main.ts",
   "scripts": {
-    "build": "nest build",
+    "postinstall": "npm install -g @nestjs/cli",
+    "build": "node_modules/.bin/nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "NODE_ENV=development nest start --watch",
