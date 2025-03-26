@@ -2,7 +2,6 @@ services:
   - type: web
     name: acta-backend
     env: node
-    nodeVersion: 20.11.1
     buildCommand: node -v && npm install && npm run build
     startCommand: npm run start:prod
     envVars:
@@ -12,3 +11,5 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
+      - key: NODE_VERSION
+        value: 20.11.1
