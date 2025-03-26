@@ -218,17 +218,8 @@ export class InvoiceService {
       throw new Error('Invoice data is incomplete');
     }
 
-    // Debug logging
-    console.log('Invoice data:', JSON.stringify(invoice, null, 2));
-    console.log('Issuer:', JSON.stringify(invoice.issuer, null, 2));
-    console.log('Recipient:', JSON.stringify(invoice.recipient, null, 2));
-    console.log('Items:', JSON.stringify(invoice.items, null, 2));
-
     const template = await this.loadTemplate('base.html');
     const html = template({ invoice });
-
-    // Debug logging
-    console.log('Generated HTML:', html);
 
     try {
       const options: Options = {

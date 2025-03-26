@@ -56,6 +56,9 @@ export class Company {
   @Column({ nullable: true })
   bankAccount: string;
 
+  @Column({ nullable: true })
+  logo: string;
+
   @OneToMany(() => Invoice, (invoice) => invoice.issuer)
   issuedInvoices: Invoice[];
 

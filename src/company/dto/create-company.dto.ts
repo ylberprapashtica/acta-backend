@@ -1,4 +1,4 @@
-import { IsString, IsEnum, IsEmail, IsDateString, IsNotEmpty } from 'class-validator';
+import { IsString, IsEnum, IsEmail, IsDateString, IsNotEmpty, IsOptional } from 'class-validator';
 import { BusinessType } from '../entities/company.entity';
 
 export class CreateCompanyDto {
@@ -7,6 +7,7 @@ export class CreateCompanyDto {
   businessName: string;
 
   @IsString()
+  @IsOptional()
   tradeName?: string;
 
   @IsEnum(BusinessType)
@@ -17,12 +18,15 @@ export class CreateCompanyDto {
   uniqueIdentificationNumber: string;
 
   @IsString()
+  @IsOptional()
   businessNumber?: string;
 
   @IsString()
+  @IsOptional()
   fiscalNumber?: string;
 
   @IsString()
+  @IsOptional()
   vatNumber?: string;
 
   @IsDateString()
@@ -44,5 +48,10 @@ export class CreateCompanyDto {
   email: string;
 
   @IsString()
+  @IsOptional()
   bankAccount?: string;
+
+  @IsString()
+  @IsOptional()
+  logo?: string;
 } 
