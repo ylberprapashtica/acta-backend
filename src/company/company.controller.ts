@@ -65,6 +65,6 @@ export class CompanyController {
     if (company.logo) {
       await this.fileUploadService.deleteLogo(company.logo);
     }
-    return this.companyService.update(id, { logo: null });
+    return this.companyService.update(id, { logo: undefined });
   }
 } 

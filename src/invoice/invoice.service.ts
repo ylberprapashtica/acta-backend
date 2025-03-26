@@ -219,7 +219,10 @@ export class InvoiceService {
     }
 
     const template = await this.loadTemplate('base.html');
-    const html = template({ invoice });
+    const html = template({
+      invoice,
+      logoUrl: invoice.issuer.logo ? `${process.env.API_URL}/uploads/companies/${invoice.issuer.logo}` : null
+    });
 
     try {
       const options: Options = {

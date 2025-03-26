@@ -31,6 +31,18 @@
         }
         .company-info {
             flex: 1;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .company-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-right: 20px;
+        }
+        .company-details-container {
+            flex: 1;
         }
         .company-name {
             font-size: 28px;
@@ -174,20 +186,25 @@
     <div class="header">
         <div class="header-content">
             <div class="company-info">
-                <div class="company-name">{{invoice.issuer.businessName}}</div>
-                <div class="company-trade-name">{{invoice.issuer.tradeName}}</div>
-                <div class="company-address">{{invoice.issuer.address}}</div>
-                <div class="company-details">
-                    <div>Business Type: {{invoice.issuer.businessType}}</div>
-                    <div>Identification Number: {{invoice.issuer.uniqueIdentificationNumber}}</div>
-                    <div>Business Number: {{invoice.issuer.businessNumber}}</div>
-                    <div>Fiscal Number: {{invoice.issuer.fiscalNumber}}</div>
-                    <div>VAT Number: {{invoice.issuer.vatNumber}}</div>
-                    <div>Registration Date: {{formatDate invoice.issuer.registrationDate}}</div>
-                    <div>Municipality: {{invoice.issuer.municipality}}</div>
-                    <div>Phone: {{invoice.issuer.phoneNumber}}</div>
-                    <div>Email: {{invoice.issuer.email}}</div>
-                    <div>Bank Account: {{invoice.issuer.bankAccount}}</div>
+                {{#if invoice.issuer.logo}}
+                <img src="{{logoUrl}}" alt="Company Logo" class="company-logo">
+                {{/if}}
+                <div class="company-details-container">
+                    <div class="company-name">{{invoice.issuer.businessName}}</div>
+                    <div class="company-trade-name">{{invoice.issuer.tradeName}}</div>
+                    <div class="company-address">{{invoice.issuer.address}}</div>
+                    <div class="company-details">
+                        <div>Business Type: {{invoice.issuer.businessType}}</div>
+                        <div>Identification Number: {{invoice.issuer.uniqueIdentificationNumber}}</div>
+                        <div>Business Number: {{invoice.issuer.businessNumber}}</div>
+                        <div>Fiscal Number: {{invoice.issuer.fiscalNumber}}</div>
+                        <div>VAT Number: {{invoice.issuer.vatNumber}}</div>
+                        <div>Registration Date: {{formatDate invoice.issuer.registrationDate}}</div>
+                        <div>Municipality: {{invoice.issuer.municipality}}</div>
+                        <div>Phone: {{invoice.issuer.phoneNumber}}</div>
+                        <div>Email: {{invoice.issuer.email}}</div>
+                        <div>Bank Account: {{invoice.issuer.bankAccount}}</div>
+                    </div>
                 </div>
             </div>
             <div class="invoice-info">
