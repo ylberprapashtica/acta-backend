@@ -3,7 +3,7 @@ services:
     name: acta-backend
     env: node
     nodeVersion: 20.11.1
-    buildCommand: npm install && npx nest build
+    buildCommand: node -v && npm install && npm run build
     startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
