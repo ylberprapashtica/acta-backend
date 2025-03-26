@@ -4,29 +4,12 @@ export class InitialSchema1711147400000 implements MigrationInterface {
     name = 'InitialSchema1711147400000';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.SCHEMA_NAME;
-
-        // Create schema if it doesn't exist
-        await queryRunner.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}"`);
-        
         // Create uuid-ossp extension in public schema if it doesn't exist
         await queryRunner.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public`);
-        
-        // Set the search path to include both schemas
-        await queryRunner.query(`SET search_path TO "${schemaName}", public`);
 
-        // Create migrations table in our schema
+        // Create tables in public schema
         await queryRunner.query(`
-            CREATE TABLE IF NOT EXISTS "${schemaName}"."migrations" (
-                id SERIAL PRIMARY KEY,
-                "timestamp" bigint NOT NULL,
-                name character varying NOT NULL
-            )
-        `);
-
-        // Create tables in our schema
-        await queryRunner.query(`
-            CREATE TABLE IF NOT EXISTS "${schemaName}".users (
+            CREATE TABLE IF NOT EXISTS "public".users (
                 id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
                 "firstName" character varying NOT NULL,
                 "lastName" character varying NOT NULL,
@@ -39,7 +22,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
         `);
 
         await queryRunner.query(`
-            CREATE TABLE IF NOT EXISTS "${schemaName}".company (
+            CREATE TABLE IF NOT EXISTS "public".company (
                 id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
                 "businessName" character varying NOT NULL,
                 "tradeName" character varying,
@@ -61,7 +44,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
         `);
 
         await queryRunner.query(`
-            CREATE TABLE IF NOT EXISTS "${schemaName}".article (
+            CREATE TABLE IF NOT EXISTS "public".article (
                 id SERIAL NOT NULL,
                 name character varying NOT NULL,
                 unit character varying NOT NULL,
@@ -73,7 +56,7 @@ export class InitialSchema1711147400000 implements MigrationInterface {
         `);
 
         await queryRunner.query(`
-            CREATE TABLE IF NOT EXISTS "${schemaName}".invoice (
+            CREATE TABLE IF NOT EXISTS "public".invoice (
                 id SERIAL NOT NULL,
                 "invoiceNumber" character varying NOT NULL,
                 "issueDate" date NOT NULL,
@@ -85,13 +68,13 @@ export class InitialSchema1711147400000 implements MigrationInterface {
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 "updatedAt" TIMESTAMP NOT NULL DEFAULT now(),
                 CONSTRAINT "PK_invoice" PRIMARY KEY (id),
-                CONSTRAINT "FK_invoice_issuer" FOREIGN KEY ("issuerId") REFERENCES "${schemaName}".company(id),
-                CONSTRAINT "FK_invoice_recipient" FOREIGN KEY ("recipientId") REFERENCES "${schemaName}".company(id)
+                CONSTRAINT "FK_invoice_issuer" FOREIGN KEY ("issuerId") REFERENCES "public".company(id),
+                CONSTRAINT "FK_invoice_recipient" FOREIGN KEY ("recipientId") REFERENCES "public".company(id)
             )
         `);
 
         await queryRunner.query(`
-            CREATE TABLE IF NOT EXISTS "${schemaName}".invoice_item (
+            CREATE TABLE IF NOT EXISTS "public".invoice_item (
                 id SERIAL NOT NULL,
                 "invoiceId" integer,
                 "articleId" integer,
@@ -100,24 +83,18 @@ export class InitialSchema1711147400000 implements MigrationInterface {
                 "totalPrice" numeric(10,2) NOT NULL,
                 "vatAmount" numeric(10,2) NOT NULL,
                 CONSTRAINT "PK_invoice_item" PRIMARY KEY (id),
-                CONSTRAINT "FK_invoice_item_invoice" FOREIGN KEY ("invoiceId") REFERENCES "${schemaName}".invoice(id) ON DELETE CASCADE,
-                CONSTRAINT "FK_invoice_item_article" FOREIGN KEY ("articleId") REFERENCES "${schemaName}".article(id) ON DELETE SET NULL
+                CONSTRAINT "FK_invoice_item_invoice" FOREIGN KEY ("invoiceId") REFERENCES "public".invoice(id) ON DELETE CASCADE,
+                CONSTRAINT "FK_invoice_item_article" FOREIGN KEY ("articleId") REFERENCES "public".article(id) ON DELETE SET NULL
             )
         `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.SCHEMA_NAME;
-        
         // Drop tables in reverse order
-        await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".invoice_item CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".invoice CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".article CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".company CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".users CASCADE`);
-        await queryRunner.query(`DROP TABLE IF EXISTS "${schemaName}".migrations CASCADE`);
-        
-        // Drop the schema and its contents
-        await queryRunner.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "public".invoice_item CASCADE`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "public".invoice CASCADE`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "public".article CASCADE`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "public".company CASCADE`);
+        await queryRunner.query(`DROP TABLE IF EXISTS "public".users CASCADE`);
     }
 } 

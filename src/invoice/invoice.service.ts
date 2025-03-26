@@ -11,6 +11,8 @@ import * as path from 'path';
 import * as Handlebars from 'handlebars';
 import * as puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
+import * as htmlPdf from 'html-pdf-node';
+import { Options } from 'html-pdf-node';
 
 // Register Handlebars helpers
 Handlebars.registerHelper('formatDate', function(date: string | Date) {
@@ -41,7 +43,7 @@ export class InvoiceService {
       return this.templateCache[templateName];
     }
 
-    const templatePath = path.resolve(__dirname, 'templates', templateName);
+    const templatePath = path.resolve(__dirname, 'invoice', 'templates', templateName);
     const templateContent = await fs.promises.readFile(templatePath, 'utf-8');
     const template = Handlebars.compile(templateContent);
     this.templateCache[templateName] = template;
@@ -199,41 +201,53 @@ export class InvoiceService {
   async generatePdf(invoiceId: number): Promise<Buffer> {
     const invoice = await this.invoiceRepository.findOne({
       where: { id: invoiceId },
-      relations: ['items', 'items.article', 'issuer', 'recipient'],
+      relations: [
+        'issuer',
+        'recipient',
+        'items',
+        'items.article'
+      ],
     });
 
     if (!invoice) {
       throw new NotFoundException(`Invoice with ID ${invoiceId} not found`);
     }
 
-    const template = await this.loadTemplate('base.html');
-    const html = template(invoice);
+    // Ensure all required data is present
+    if (!invoice.issuer || !invoice.recipient || !invoice.items || invoice.items.length === 0) {
+      throw new Error('Invoice data is incomplete');
+    }
 
-    // Configure chromium for serverless environment
-    const executablePath = await chromium.executablePath();
-    const browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath,
-      headless: chromium.headless,
-    });
+    // Debug logging
+    console.log('Invoice data:', JSON.stringify(invoice, null, 2));
+    console.log('Issuer:', JSON.stringify(invoice.issuer, null, 2));
+    console.log('Recipient:', JSON.stringify(invoice.recipient, null, 2));
+    console.log('Items:', JSON.stringify(invoice.items, null, 2));
+
+    const template = await this.loadTemplate('base.html');
+    const html = template({ invoice });
+
+    // Debug logging
+    console.log('Generated HTML:', html);
 
     try {
-      const page = await browser.newPage();
-      await page.setContent(html);
-      const pdfBuffer = await page.pdf({
+      const options: Options = {
         format: 'A4',
-        printBackground: true,
         margin: {
           top: '20px',
           right: '20px',
           bottom: '20px',
           left: '20px',
         },
-      });
-      return Buffer.from(pdfBuffer);
-    } finally {
-      await browser.close();
+        printBackground: true,
+        preferCSSPageSize: true,
+      };
+
+      const file = await htmlPdf.generatePdf({ content: html }, options) as unknown as Buffer;
+      return file;
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      throw new Error(`Failed to generate PDF: ${error.message}`);
     }
   }
 } 

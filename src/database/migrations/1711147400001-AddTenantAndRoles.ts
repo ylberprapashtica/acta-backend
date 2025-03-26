@@ -2,16 +2,14 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class AddTenantAndRoles1711147400001 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.SCHEMA_NAME;
-
         // Create enum type for user roles
         await queryRunner.query(`
-            CREATE TYPE "${schemaName}".user_role_enum AS ENUM ('super_admin', 'admin', 'user');
+            CREATE TYPE "public".user_role_enum AS ENUM ('super_admin', 'admin', 'user');
         `);
 
         // Create tenants table
         await queryRunner.query(`
-            CREATE TABLE "${schemaName}".tenants (
+            CREATE TABLE "public".tenants (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
                 "name" character varying NOT NULL,
                 "slug" character varying NOT NULL,
@@ -26,20 +24,18 @@ export class AddTenantAndRoles1711147400001 implements MigrationInterface {
 
         // Add role and tenant columns to users table
         await queryRunner.query(`
-            ALTER TABLE "${schemaName}".users 
-            ADD COLUMN "role" "${schemaName}".user_role_enum NOT NULL DEFAULT 'user',
+            ALTER TABLE "public".users 
+            ADD COLUMN "role" "public".user_role_enum NOT NULL DEFAULT 'user',
             ADD COLUMN "tenantId" uuid,
             ADD COLUMN "isActive" boolean NOT NULL DEFAULT true,
-            ADD CONSTRAINT "FK_users_tenant" FOREIGN KEY ("tenantId") REFERENCES "${schemaName}".tenants("id") ON DELETE SET NULL
+            ADD CONSTRAINT "FK_users_tenant" FOREIGN KEY ("tenantId") REFERENCES "public".tenants("id") ON DELETE SET NULL
         `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        const schemaName = process.env.SCHEMA_NAME;
-
         // Remove foreign key and columns from users table
         await queryRunner.query(`
-            ALTER TABLE "${schemaName}".users 
+            ALTER TABLE "public".users 
             DROP CONSTRAINT "FK_users_tenant",
             DROP COLUMN "role",
             DROP COLUMN "tenantId",
@@ -48,12 +44,12 @@ export class AddTenantAndRoles1711147400001 implements MigrationInterface {
 
         // Drop tenants table
         await queryRunner.query(`
-            DROP TABLE "${schemaName}".tenants
+            DROP TABLE "public".tenants
         `);
 
         // Drop enum type
         await queryRunner.query(`
-            DROP TYPE "${schemaName}".user_role_enum
+            DROP TYPE "public".user_role_enum
         `);
     }
 } 
