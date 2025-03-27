@@ -43,4 +43,10 @@ export class ArticleController {
   remove(@Param('id') id: string, @Tenant() tenantId: string) {
     return this.articleService.remove(+id, tenantId);
   }
+
+  @Get('company/:companyId')
+  @Roles(Role.USER)
+  findByCompany(@Param('companyId') companyId: string, @Tenant() tenantId: string): Promise<Article[]> {
+    return this.articleService.findByCompany(companyId, tenantId);
+  }
 } 

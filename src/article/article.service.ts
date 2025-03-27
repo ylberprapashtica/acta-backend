@@ -100,4 +100,18 @@ export class ArticleService {
     const article = await this.findOne(id, tenantId);
     await this.articleRepository.remove(article);
   }
+
+  async findByCompany(companyId: string, tenantId?: string): Promise<Article[]> {
+    const queryBuilder = this.articleRepository.createQueryBuilder('article')
+      .leftJoinAndSelect('article.company', 'company')
+      .where('article.companyId = :companyId', { companyId });
+
+    if (tenantId) {
+      queryBuilder.andWhere('company.tenantId = :tenantId', { tenantId });
+    }
+
+    return await queryBuilder
+      .orderBy('article.name', 'ASC')
+      .getMany();
+  }
 } 

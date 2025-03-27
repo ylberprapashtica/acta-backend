@@ -7,13 +7,10 @@ import { ArticleService } from '../../article/article.service';
 import { InvoiceService } from '../../invoice/invoice.service';
 import { CreateTenantDto } from '../../tenant/dto/create-tenant.dto';
 import { CreateUserDto } from '../../user/dto/create-user.dto';
-import { VatCode } from '../../article/article.entity';
 import { BusinessType } from '../../company/company.entity';
 import { Role } from '../../user/user.entity';
 import { faker } from '@faker-js/faker';
 import { CreateCompanyDto } from '../../company/dto/create-company.dto';
-import { CreateArticleDto } from '../../article/dto/create-article.dto';
-import { CreateInvoiceDto } from '../../invoice/dto/create-invoice.dto';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,9 +23,15 @@ async function bootstrap() {
   // Create 3 tenants
   const tenants = [];
   for (let i = 0; i < 3; i++) {
+    const tenantName = faker.company.name();
+    // Create slug from tenant name using only alpha characters
+    const tenantSlug = tenantName
+      .replace(/[^a-zA-Z]/g, '')
+      .toLowerCase();
+
     const tenantDto: CreateTenantDto = {
-      name: faker.company.name(),
-      slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
+      name: tenantName,
+      slug: tenantSlug,
       description: faker.company.catchPhrase(),
     };
     const tenant = await tenantService.create(tenantDto);
@@ -36,7 +39,7 @@ async function bootstrap() {
 
     // Create admin user for each tenant
     const adminUserDto: CreateUserDto = {
-      email: `admin${i + 1}@${tenant.slug}.com`,
+      email: `admin${i + 1}@${tenantSlug}.com`,
       password: 'password123',
       firstName: `Admin${i + 1}`,
       lastName: `User${i + 1}`,
@@ -46,7 +49,7 @@ async function bootstrap() {
     await userService.create(adminUserDto, tenant.id);
 
     const normalUserDto: CreateUserDto = {
-      email: `user${i + 1}@${tenant.slug}.com`,
+      email: `user${i + 1}@${tenantSlug}.com`,
       password: 'password123',
       firstName: `Normal${i + 1}`,
       lastName: `User${i + 1}`,
