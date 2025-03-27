@@ -3,6 +3,7 @@ import { TenantService } from './tenant.service';
 import { CreateTenantDto } from './dto/create-tenant.dto';
 import { UpdateTenantDto } from './dto/update-tenant.dto';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../user/user.entity';
 import { Request } from 'express';
@@ -15,14 +16,14 @@ interface JwtPayload {
 }
 
 @Controller('tenants')
-@UseGuards(RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class TenantController {
   constructor(private readonly tenantService: TenantService) {
     console.log('TenantController initialized');
   }
 
   @Get('current')
-  @Roles(Role.ADMIN, Role.USER)
+  @Roles(Role.ADMIN)
   async getCurrentTenant(@Req() req: Request) {
     console.log('TenantController - getCurrentTenant called');
     console.log('TenantController - Request user:', req.user);
@@ -39,31 +40,31 @@ export class TenantController {
   }
 
   @Post()
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(Role.ADMIN)
   create(@Body() createTenantDto: CreateTenantDto) {
     return this.tenantService.create(createTenantDto);
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(Role.ADMIN)
   findAll() {
     return this.tenantService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.tenantService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() updateTenantDto: UpdateTenantDto) {
     return this.tenantService.update(id, updateTenantDto);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.SUPERADMIN)
+  @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.tenantService.remove(id);
   }

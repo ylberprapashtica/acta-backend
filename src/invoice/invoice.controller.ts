@@ -4,14 +4,19 @@ import { Response } from 'express';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 import { Invoice } from './invoice.entity';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../user/user.entity';
 import { Tenant } from '../common/decorators/tenant.decorator';
 
 @Controller('invoices')
-@UseGuards(TenantGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
 
   @Post()
+  @Roles(Role.USER)
   createInvoice(@Body() data: {
     issuerId: string;
     recipientId: string;
@@ -22,20 +27,23 @@ export class InvoiceController {
     }>;
     issueDate?: Date;
   }, @Tenant() tenantId: string) {
-    return this.invoiceService.createInvoice(data);
+    return this.invoiceService.createInvoice(data, tenantId);
   }
 
   @Get()
+  @Roles(Role.USER)
   getInvoices(@Query() paginationDto: PaginationDto, @Tenant() tenantId: string): Promise<PaginatedResponse<Invoice>> {
     return this.invoiceService.getInvoices(paginationDto, tenantId);
   }
 
   @Get(':id')
+  @Roles(Role.USER)
   getInvoice(@Param('id') id: string, @Tenant() tenantId: string) {
     return this.invoiceService.getInvoice(+id, tenantId);
   }
 
   @Get('company/:companyId')
+  @Roles(Role.USER)
   getInvoicesByCompany(
     @Param('companyId') companyId: string,
     @Query() paginationDto: PaginationDto,
@@ -45,6 +53,7 @@ export class InvoiceController {
   }
 
   @Get(':id/pdf')
+  @Roles(Role.USER)
   async downloadPdf(
     @Param('id') id: string,
     @Res() res: Response,

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './tenant.entity';
@@ -76,6 +76,15 @@ export class TenantService {
   }
 
   async create(createTenantDto: CreateTenantDto): Promise<Tenant> {
+    // Check if tenant with same slug already exists
+    const existingTenant = await this.tenantRepository.findOne({
+      where: { slug: createTenantDto.slug }
+    });
+
+    if (existingTenant) {
+      throw new ForbiddenException('A tenant with this slug already exists');
+    }
+
     const tenant = this.tenantRepository.create(createTenantDto);
     return this.tenantRepository.save(tenant);
   }
@@ -99,12 +108,34 @@ export class TenantService {
 
   async update(id: string, updateTenantDto: UpdateTenantDto): Promise<Tenant> {
     const tenant = await this.findOne(id);
+
+    // If slug is being updated, check if new slug is already taken
+    if (updateTenantDto.slug && updateTenantDto.slug !== tenant.slug) {
+      const existingTenant = await this.tenantRepository.findOne({
+        where: { slug: updateTenantDto.slug }
+      });
+
+      if (existingTenant) {
+        throw new ForbiddenException('A tenant with this slug already exists');
+      }
+    }
+
     Object.assign(tenant, updateTenantDto);
     return this.tenantRepository.save(tenant);
   }
 
   async remove(id: string): Promise<void> {
     const tenant = await this.findOne(id);
+    
+    // Check if tenant has any users
+    const userCount = await this.userRepository.count({
+      where: { tenantId: id }
+    });
+
+    if (userCount > 0) {
+      throw new ForbiddenException('Cannot delete tenant with existing users');
+    }
+
     await this.tenantRepository.remove(tenant);
   }
 } 
