@@ -76,25 +76,19 @@ export class InvoiceService {
       unitPrice?: number;
     }>;
     issueDate?: Date;
-  }, tenantId?: string) {
-    const issuer = await this.companyRepository.findOne({ 
-      where: { id: data.issuerId },
-      relations: ['tenant']
-    });
-    const recipient = await this.companyRepository.findOne({ 
-      where: { id: data.recipientId },
-      relations: ['tenant']
-    });
+  }, tenantId: string) {
+    // Verify that both companies belong to the tenant
+    const [issuer, recipient] = await Promise.all([
+      this.companyRepository.findOne({ 
+        where: { id: data.issuerId, tenantId }
+      }),
+      this.companyRepository.findOne({ 
+        where: { id: data.recipientId, tenantId }
+      })
+    ]);
 
     if (!issuer || !recipient) {
-      throw new NotFoundException('Issuer or recipient company not found');
-    }
-
-    // Check tenant access
-    if (tenantId) {
-      if (issuer.tenantId !== tenantId || recipient.tenantId !== tenantId) {
-        throw new ForbiddenException('You do not have access to one or both of these companies');
-      }
+      throw new ForbiddenException('You can only create invoices between companies in your tenant');
     }
 
     // Create invoice items first to calculate totals
@@ -104,13 +98,14 @@ export class InvoiceService {
           where: { id: item.articleId },
           relations: ['company']
         });
+
         if (!article) {
           throw new NotFoundException(`Article with ID ${item.articleId} not found`);
         }
 
-        // Check if article belongs to the same tenant
-        if (tenantId && article.company.tenantId !== tenantId) {
-          throw new ForbiddenException(`You do not have access to article ${item.articleId}`);
+        // Verify article belongs to the tenant
+        if (article.company.tenantId !== tenantId) {
+          throw new ForbiddenException(`You can only use articles from companies in your tenant`);
         }
 
         const invoiceItem = this.invoiceItemRepository.create({
@@ -200,6 +195,10 @@ export class InvoiceService {
       throw new NotFoundException(`Invoice with ID ${id} not found`);
     }
 
+    if (tenantId && invoice.issuer.tenantId !== tenantId && invoice.recipient.tenantId !== tenantId) {
+      throw new ForbiddenException('You do not have access to this invoice');
+    }
+
     return invoice;
   }
 
@@ -207,6 +206,17 @@ export class InvoiceService {
     const page = paginationDto?.page || 1;
     const limit = paginationDto?.limit || 100;
     const skip = (page - 1) * limit;
+
+    // First verify the company belongs to the tenant
+    if (tenantId) {
+      const company = await this.companyRepository.findOne({
+        where: { id: companyId, tenantId }
+      });
+
+      if (!company) {
+        throw new ForbiddenException('You can only view invoices for companies in your tenant');
+      }
+    }
 
     const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice')
       .leftJoinAndSelect('invoice.issuer', 'issuer')
