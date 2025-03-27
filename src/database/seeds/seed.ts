@@ -100,20 +100,23 @@ async function bootstrap() {
       // Create invoices between companies
       for (let k = 0; k < companies.length; k++) {
         if (k !== j) {
-          const invoiceDto = {
-            issuerId: company.id,
-            recipientId: companies[k].id,
-            items: [
-              {
-                articleId: articles[0].id,
-                quantity: 2,
-                unitPrice: 100,
-              },
-            ],
-            issueDate: new Date(),
-          };
-          
-          await invoiceService.createInvoice(invoiceDto, tenant.id);
+          // Create 10 invoices for each company pair
+          for (let invoiceCount = 0; invoiceCount < 10; invoiceCount++) {
+            const invoiceDto = {
+              issuerId: company.id,
+              recipientId: companies[k].id,
+              items: [
+                {
+                  articleId: articles[0].id,
+                  quantity: 2,
+                  unitPrice: 100,
+                },
+              ],
+              issueDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000), // Random date within last 30 days
+            };
+            
+            await invoiceService.createInvoice(invoiceDto, tenant.id);
+          }
         }
       }
     }
