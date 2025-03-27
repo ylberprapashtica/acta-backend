@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Invoice } from './invoice.entity';
@@ -76,20 +76,41 @@ export class InvoiceService {
       unitPrice?: number;
     }>;
     issueDate?: Date;
-  }) {
-    const issuer = await this.companyRepository.findOne({ where: { id: data.issuerId } });
-    const recipient = await this.companyRepository.findOne({ where: { id: data.recipientId } });
+  }, tenantId?: string) {
+    const issuer = await this.companyRepository.findOne({ 
+      where: { id: data.issuerId },
+      relations: ['tenant']
+    });
+    const recipient = await this.companyRepository.findOne({ 
+      where: { id: data.recipientId },
+      relations: ['tenant']
+    });
 
     if (!issuer || !recipient) {
       throw new NotFoundException('Issuer or recipient company not found');
     }
 
+    // Check tenant access
+    if (tenantId) {
+      if (issuer.tenantId !== tenantId || recipient.tenantId !== tenantId) {
+        throw new ForbiddenException('You do not have access to one or both of these companies');
+      }
+    }
+
     // Create invoice items first to calculate totals
     const invoiceItems = await Promise.all(
       data.items.map(async (item) => {
-        const article = await this.articleRepository.findOne({ where: { id: item.articleId } });
+        const article = await this.articleRepository.findOne({ 
+          where: { id: item.articleId },
+          relations: ['company']
+        });
         if (!article) {
           throw new NotFoundException(`Article with ID ${item.articleId} not found`);
+        }
+
+        // Check if article belongs to the same tenant
+        if (tenantId && article.company.tenantId !== tenantId) {
+          throw new ForbiddenException(`You do not have access to article ${item.articleId}`);
         }
 
         const invoiceItem = this.invoiceItemRepository.create({
@@ -127,19 +148,26 @@ export class InvoiceService {
     return this.invoiceRepository.save(invoice);
   }
 
-  async getInvoices(paginationDto?: PaginationDto): Promise<PaginatedResponse<Invoice>> {
+  async getInvoices(paginationDto?: PaginationDto, tenantId?: string): Promise<PaginatedResponse<Invoice>> {
     const page = paginationDto?.page || 1;
     const limit = paginationDto?.limit || 100;
     const skip = (page - 1) * limit;
 
-    const [items, total] = await this.invoiceRepository.findAndCount({
-      skip,
-      take: limit,
-      relations: ['issuer', 'recipient', 'items', 'items.article'],
-      order: {
-        issueDate: 'DESC',
-      },
-    });
+    const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice')
+      .leftJoinAndSelect('invoice.issuer', 'issuer')
+      .leftJoinAndSelect('invoice.recipient', 'recipient')
+      .leftJoinAndSelect('invoice.items', 'items')
+      .leftJoinAndSelect('items.article', 'article');
+
+    if (tenantId) {
+      queryBuilder.where('(issuer.tenantId = :tenantId OR recipient.tenantId = :tenantId)', { tenantId });
+    }
+
+    const [items, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .orderBy('invoice.issueDate', 'DESC')
+      .getManyAndCount();
 
     const lastPage = Math.ceil(total / limit);
 
@@ -154,11 +182,19 @@ export class InvoiceService {
     };
   }
 
-  async getInvoice(id: number) {
-    const invoice = await this.invoiceRepository.findOne({
-      where: { id },
-      relations: ['issuer', 'recipient', 'items', 'items.article'],
-    });
+  async getInvoice(id: number, tenantId?: string) {
+    const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice')
+      .leftJoinAndSelect('invoice.issuer', 'issuer')
+      .leftJoinAndSelect('invoice.recipient', 'recipient')
+      .leftJoinAndSelect('invoice.items', 'items')
+      .leftJoinAndSelect('items.article', 'article')
+      .where('invoice.id = :id', { id });
+
+    if (tenantId) {
+      queryBuilder.andWhere('(issuer.tenantId = :tenantId OR recipient.tenantId = :tenantId)', { tenantId });
+    }
+
+    const invoice = await queryBuilder.getOne();
 
     if (!invoice) {
       throw new NotFoundException(`Invoice with ID ${id} not found`);
@@ -167,23 +203,27 @@ export class InvoiceService {
     return invoice;
   }
 
-  async getInvoicesByCompany(companyId: string, paginationDto?: PaginationDto): Promise<PaginatedResponse<Invoice>> {
+  async getInvoicesByCompany(companyId: string, paginationDto?: PaginationDto, tenantId?: string): Promise<PaginatedResponse<Invoice>> {
     const page = paginationDto?.page || 1;
     const limit = paginationDto?.limit || 100;
     const skip = (page - 1) * limit;
 
-    const [items, total] = await this.invoiceRepository.findAndCount({
-      where: [
-        { issuer: { id: companyId } },
-        { recipient: { id: companyId } },
-      ],
-      relations: ['issuer', 'recipient', 'items', 'items.article'],
-      skip,
-      take: limit,
-      order: {
-        issueDate: 'DESC',
-      },
-    });
+    const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice')
+      .leftJoinAndSelect('invoice.issuer', 'issuer')
+      .leftJoinAndSelect('invoice.recipient', 'recipient')
+      .leftJoinAndSelect('invoice.items', 'items')
+      .leftJoinAndSelect('items.article', 'article')
+      .where('(issuer.id = :companyId OR recipient.id = :companyId)', { companyId });
+
+    if (tenantId) {
+      queryBuilder.andWhere('(issuer.tenantId = :tenantId OR recipient.tenantId = :tenantId)', { tenantId });
+    }
+
+    const [items, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .orderBy('invoice.issueDate', 'DESC')
+      .getManyAndCount();
 
     const lastPage = Math.ceil(total / limit);
 
@@ -198,20 +238,8 @@ export class InvoiceService {
     };
   }
 
-  async generatePdf(invoiceId: number): Promise<Buffer> {
-    const invoice = await this.invoiceRepository.findOne({
-      where: { id: invoiceId },
-      relations: [
-        'issuer',
-        'recipient',
-        'items',
-        'items.article'
-      ],
-    });
-
-    if (!invoice) {
-      throw new NotFoundException(`Invoice with ID ${invoiceId} not found`);
-    }
+  async generatePdf(invoiceId: number, tenantId?: string): Promise<Buffer> {
+    const invoice = await this.getInvoice(invoiceId, tenantId);
 
     // Ensure all required data is present
     if (!invoice.issuer || !invoice.recipient || !invoice.items || invoice.items.length === 0) {
@@ -240,8 +268,7 @@ export class InvoiceService {
       const file = await htmlPdf.generatePdf({ content: html }, options) as unknown as Buffer;
       return file;
     } catch (error) {
-      console.error('PDF generation error:', error);
-      throw new Error(`Failed to generate PDF: ${error.message}`);
+      throw new Error('Failed to generate PDF');
     }
   }
 } 

@@ -11,24 +11,28 @@ export class ArticleService {
     private articleRepository: Repository<Article>,
   ) {}
 
-  async create(createArticleDto: Partial<Article>): Promise<Article> {
+  async create(createArticleDto: Partial<Article>, tenantId: string): Promise<Article> {
     const article = this.articleRepository.create(createArticleDto);
     return await this.articleRepository.save(article);
   }
 
-  async findAll(paginationDto?: PaginationDto): Promise<PaginatedResponse<Article>> {
+  async findAll(paginationDto?: PaginationDto, tenantId?: string): Promise<PaginatedResponse<Article>> {
     const page = paginationDto?.page || 1;
     const limit = paginationDto?.limit || 100;
     const skip = (page - 1) * limit;
 
-    const [items, total] = await this.articleRepository.findAndCount({
-      skip,
-      take: limit,
-      order: {
-        name: 'ASC',
-      },
-      relations: ['company'],
-    });
+    const queryBuilder = this.articleRepository.createQueryBuilder('article')
+      .leftJoinAndSelect('article.company', 'company');
+
+    if (tenantId) {
+      queryBuilder.where('company.tenantId = :tenantId', { tenantId });
+    }
+
+    const [items, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .orderBy('article.name', 'ASC')
+      .getManyAndCount();
 
     const lastPage = Math.ceil(total / limit);
 
@@ -43,26 +47,32 @@ export class ArticleService {
     };
   }
 
-  async findOne(id: number): Promise<Article> {
-    const article = await this.articleRepository.findOne({ 
-      where: { id },
-      relations: ['company'],
-    });
+  async findOne(id: number, tenantId?: string): Promise<Article> {
+    const queryBuilder = this.articleRepository.createQueryBuilder('article')
+      .leftJoinAndSelect('article.company', 'company')
+      .where('article.id = :id', { id });
+
+    if (tenantId) {
+      queryBuilder.andWhere('company.tenantId = :tenantId', { tenantId });
+    }
+
+    const article = await queryBuilder.getOne();
+
     if (!article) {
       throw new NotFoundException(`Article with ID ${id} not found`);
     }
+
     return article;
   }
 
-  async update(id: number, updateArticleDto: Partial<Article>): Promise<Article> {
-    await this.articleRepository.update(id, updateArticleDto);
-    return await this.findOne(id);
+  async update(id: number, updateArticleDto: Partial<Article>, tenantId: string): Promise<Article> {
+    const article = await this.findOne(id, tenantId);
+    Object.assign(article, updateArticleDto);
+    return await this.articleRepository.save(article);
   }
 
-  async remove(id: number): Promise<void> {
-    const result = await this.articleRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Article with ID ${id} not found`);
-    }
+  async remove(id: number, tenantId: string): Promise<void> {
+    const article = await this.findOne(id, tenantId);
+    await this.articleRepository.remove(article);
   }
 } 

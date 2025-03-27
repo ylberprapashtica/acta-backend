@@ -35,6 +35,12 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
+    // If Role.USER is required, also allow ADMIN access
+    if (requiredRoles.includes(Role.USER) && user.role === Role.ADMIN) {
+      console.log('RolesGuard - User is admin and Role.USER is required, allowing access');
+      return true;
+    }
+
     const hasRole = requiredRoles.includes(user.role);
     console.log('RolesGuard - User has required role:', hasRole);
     return hasRole;
