@@ -6,10 +6,14 @@ import { Company } from './company.entity';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 import { FileUploadService } from './file-upload.service';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../user/user.entity';
 import { Tenant } from '../common/decorators/tenant.decorator';
 
 @Controller('companies')
-@UseGuards(TenantGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class CompanyController {
   constructor(
     private readonly companyService: CompanyService,
@@ -17,6 +21,7 @@ export class CompanyController {
   ) {}
 
   @Post()
+  @Roles(Role.USER)
   create(
     @Body() createCompanyDto: CreateCompanyDto,
     @Tenant() tenantId: string,
@@ -25,6 +30,7 @@ export class CompanyController {
   }
 
   @Get()
+  @Roles(Role.USER)
   findAll(
     @Query() paginationDto: PaginationDto,
     @Tenant() tenantId: string,
@@ -33,6 +39,7 @@ export class CompanyController {
   }
 
   @Get(':id')
+  @Roles(Role.USER)
   findOne(
     @Param('id') id: string,
     @Tenant() tenantId: string,
@@ -41,6 +48,7 @@ export class CompanyController {
   }
 
   @Patch(':id')
+  @Roles(Role.USER)
   update(
     @Param('id') id: string,
     @Body() updateCompanyDto: Partial<CreateCompanyDto>,
@@ -50,6 +58,7 @@ export class CompanyController {
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN)
   remove(
     @Param('id') id: string,
     @Tenant() tenantId: string,
@@ -59,6 +68,7 @@ export class CompanyController {
 
   @Post(':id/logo')
   @UseInterceptors(FileInterceptor('logo'))
+  @Roles(Role.USER)
   async uploadLogo(
     @Param('id') id: string,
     @Tenant() tenantId: string,
@@ -77,6 +87,7 @@ export class CompanyController {
   }
 
   @Delete(':id/logo')
+  @Roles(Role.USER)
   async removeLogo(
     @Param('id') id: string,
     @Tenant() tenantId: string,

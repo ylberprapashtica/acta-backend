@@ -90,6 +90,12 @@ export class CompanyService {
   async update(id: string, updateCompanyDto: Partial<CreateCompanyDto>, tenantId: string): Promise<Company> {
     try {
       const company = await this.findOne(id, tenantId);
+      
+      // Prevent changing tenant ID through update
+      if (updateCompanyDto.tenantId) {
+        delete updateCompanyDto.tenantId;
+      }
+
       Object.assign(company, updateCompanyDto);
       return await this.companyRepository.save(company);
     } catch (error) {
