@@ -90,6 +90,7 @@ async function bootstrap() {
           basePrice: 100 + k,
           vatRate: 18,
           unit: 'piece',
+          code: `${tenant.slug}-${j + 1}-${k + 1}`,
           companyId: company.id,
         };
         const article = await articleService.create(articleDto, tenant.id);
