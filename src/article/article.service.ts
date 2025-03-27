@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Article } from './article.entity';
@@ -12,6 +12,15 @@ export class ArticleService {
   ) {}
 
   async create(createArticleDto: Partial<Article>, tenantId: string): Promise<Article> {
+    // Verify that the company belongs to the tenant
+    const company = await this.articleRepository.manager.findOne('company', {
+      where: { id: createArticleDto.companyId, tenantId }
+    });
+
+    if (!company) {
+      throw new ForbiddenException('You can only create articles for companies in your tenant');
+    }
+
     const article = this.articleRepository.create(createArticleDto);
     return await this.articleRepository.save(article);
   }
@@ -62,11 +71,27 @@ export class ArticleService {
       throw new NotFoundException(`Article with ID ${id} not found`);
     }
 
+    if (tenantId && article.company.tenantId !== tenantId) {
+      throw new ForbiddenException('You do not have access to this article');
+    }
+
     return article;
   }
 
   async update(id: number, updateArticleDto: Partial<Article>, tenantId: string): Promise<Article> {
     const article = await this.findOne(id, tenantId);
+
+    // If company is being changed, verify it belongs to the tenant
+    if (updateArticleDto.companyId && updateArticleDto.companyId !== article.companyId) {
+      const newCompany = await this.articleRepository.manager.findOne('company', {
+        where: { id: updateArticleDto.companyId, tenantId }
+      });
+
+      if (!newCompany) {
+        throw new ForbiddenException('You can only assign articles to companies in your tenant');
+      }
+    }
+
     Object.assign(article, updateArticleDto);
     return await this.articleRepository.save(article);
   }
