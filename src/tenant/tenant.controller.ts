@@ -23,7 +23,7 @@ export class TenantController {
   }
 
   @Get('current')
-  @Roles(Role.ADMIN)
+  @Roles(Role.USER)
   async getCurrentTenant(@Req() req: Request) {
     console.log('TenantController - getCurrentTenant called');
     console.log('TenantController - Request user:', req.user);
@@ -47,8 +47,9 @@ export class TenantController {
 
   @Get()
   @Roles(Role.ADMIN)
-  findAll() {
-    return this.tenantService.findAll();
+  findAll(@Req() req: Request) {
+    const user = req.user as JwtPayload;
+    return this.tenantService.findAll(user.id);
   }
 
   @Get(':id')

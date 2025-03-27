@@ -13,7 +13,6 @@ import { Article } from './article/article.entity';
 import { Invoice } from './invoice/invoice.entity';
 import { InvoiceItem } from './invoice/invoice-item.entity';
 import { InvoiceModule } from './invoice/invoice.module';
-import { DataSource } from 'typeorm';
 import { Tenant } from './tenant/tenant.entity';
 import { LoggerService } from './common/services/logger.service';
 import { TenantGuard } from './common/guards/tenant.guard';
@@ -45,7 +44,7 @@ import { UserModule } from './user/user.module';
       },
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Tenant]),
     AuthModule,
     TenantModule,
     UserModule,

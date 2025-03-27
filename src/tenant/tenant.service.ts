@@ -89,10 +89,38 @@ export class TenantService {
     return this.tenantRepository.save(tenant);
   }
 
-  async findAll(): Promise<Tenant[]> {
-    return this.tenantRepository.find({
-      relations: ['companies']
+  async findAll(userId: string): Promise<Tenant[]> {
+    console.log('TenantService - findAll called with userId:', userId);
+    
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      console.log('TenantService - User not found');
+      throw new NotFoundException('User not found');
+    }
+
+    console.log('TenantService - User role:', user.role);
+    
+    if (user.role === Role.SUPERADMIN) {
+      console.log('TenantService - User is superadmin, returning all tenants');
+      return this.tenantRepository.find();
+    }
+
+    if (!user.tenantId) {
+      console.log('TenantService - User has no assigned tenant');
+      throw new NotFoundException('User has no assigned tenant');
+    }
+
+    console.log('TenantService - Returning tenant for non-superadmin user');
+    const tenant = await this.tenantRepository.findOne({ 
+      where: { id: user.tenantId } 
     });
+
+    if (!tenant) {
+      console.log('TenantService - Tenant not found');
+      throw new NotFoundException('Tenant not found');
+    }
+
+    return [tenant];
   }
 
   async findOne(id: string): Promise<Tenant> {

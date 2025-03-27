@@ -1,19 +1,12 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../../user/user.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Tenant } from '../../tenant/tenant.entity';
 
 @Injectable()
 export class TenantGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    @InjectRepository(Tenant)
-    private tenantRepository: Repository<Tenant>,
-  ) {}
+  constructor(private reflector: Reflector) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     console.log('TenantGuard - Request URL:', request.url);
     
@@ -47,35 +40,8 @@ export class TenantGuard implements CanActivate {
       return true;
     }
 
-    // For admin users, check if the requested tenant is part of their tenant group
+    // For admin users, they can only access their own tenant
     if (user.role === Role.ADMIN || user.role === 'admin') {
-      const userTenant = await this.tenantRepository.findOne({
-        where: { id: user.tenantId }
-      });
-
-      if (!userTenant) {
-        console.log('TenantGuard - Admin user tenant not found');
-        return false;
-      }
-
-      // If the requested tenant is the same as the admin's tenant, allow access
-      if (requestTenantId === user.tenantId) {
-        console.log('TenantGuard - Admin accessing their own tenant');
-        return true;
-      }
-
-      // Check if the requested tenant is part of the admin's tenant group
-      const requestedTenant = await this.tenantRepository.findOne({
-        where: { id: requestTenantId }
-      });
-
-      if (!requestedTenant) {
-        console.log('TenantGuard - Requested tenant not found');
-        return false;
-      }
-
-      // For now, we'll only allow access to the admin's own tenant
-      // If you want to implement tenant groups later, you can add that logic here
       const hasAccess = user.tenantId === requestTenantId;
       console.log('TenantGuard - Admin tenant check result:', hasAccess);
       return hasAccess;

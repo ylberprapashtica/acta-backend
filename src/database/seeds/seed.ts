@@ -34,88 +34,83 @@ async function bootstrap() {
     const tenant = await tenantService.create(tenantDto);
     tenants.push(tenant);
 
-    // Create admin and normal user for each tenant
+    // Create admin user for each tenant
     const adminUserDto: CreateUserDto = {
       email: `admin${i + 1}@${tenant.slug}.com`,
       password: 'password123',
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
+      firstName: `Admin${i + 1}`,
+      lastName: `User${i + 1}`,
       role: Role.ADMIN,
       tenantId: tenant.id,
     };
-    await userService.create(adminUserDto);
+    await userService.create(adminUserDto, tenant.id);
 
     const normalUserDto: CreateUserDto = {
       email: `user${i + 1}@${tenant.slug}.com`,
       password: 'password123',
-      firstName: faker.person.firstName(),
-      lastName: faker.person.lastName(),
+      firstName: `Normal${i + 1}`,
+      lastName: `User${i + 1}`,
       role: Role.USER,
       tenantId: tenant.id,
     };
-    await userService.create(normalUserDto);
+    await userService.create(normalUserDto, tenant.id);
 
     // Create companies for each tenant
     const numberOfCompanies = i === 0 ? 2 : i === 1 ? 2 : 1; // 2 companies for first two tenants, 1 for the last
     const companies = [];
-    
     for (let j = 0; j < numberOfCompanies; j++) {
       const companyDto: CreateCompanyDto = {
-        businessName: faker.company.name(),
-        tradeName: faker.company.name(),
-        businessType: faker.helpers.arrayElement(Object.values(BusinessType)),
-        uniqueIdentificationNumber: faker.string.numeric(10),
-        businessNumber: faker.string.numeric(8),
-        fiscalNumber: faker.string.numeric(8),
-        vatNumber: faker.string.numeric(8),
-        registrationDate: faker.date.past(),
-        municipality: faker.address.city(),
-        address: faker.address.streetAddress(),
-        phoneNumber: faker.phone.number(),
-        email: faker.internet.email(),
-        bankAccount: faker.finance.accountNumber(),
+        businessName: `${tenant.slug}-company-${j + 1}`,
+        tradeName: `${tenant.slug}-trade-${j + 1}`,
+        businessType: BusinessType.LLC,
+        vatNumber: `VAT${i}${j}`,
+        fiscalNumber: `FISCAL${i}${j}`,
+        businessNumber: `BUS${i}${j}`,
+        uniqueIdentificationNumber: `UIN${i}${j}`,
+        registrationDate: new Date(),
+        address: `${j + 1} Main St`,
+        municipality: 'Test City',
+        phoneNumber: `+1234567890${j}`,
+        email: `company${j + 1}@${tenant.slug}.com`,
+        bankAccount: `BANK${i}${j}`,
         tenantId: tenant.id,
       };
       const company = await companyService.create(companyDto, tenant.id);
       companies.push(company);
 
-      // Create 5 articles for each company
+      // Create articles for each company
       const articles = [];
-      for (let k = 0; k < 5; k++) {
-        const articleDto: CreateArticleDto = {
-          name: faker.commerce.productName(),
-          unit: faker.helpers.arrayElement(['piece', 'kg', 'liter', 'meter']),
-          code: faker.string.alphanumeric(6).toUpperCase(),
-          vatCode: faker.helpers.arrayElement([VatCode.ZERO, VatCode.EIGHT, VatCode.EIGHTEEN]),
-          basePrice: parseFloat(faker.commerce.price({ min: 10, max: 1000 })),
+      for (let k = 0; k < 3; k++) {
+        const articleDto = {
+          name: `${tenant.slug}-article-${j + 1}-${k + 1}`,
+          description: `Description for article ${k + 1}`,
+          basePrice: 100 + k,
+          vatRate: 18,
+          unit: 'piece',
           companyId: company.id,
         };
-        const article = await articleService.create(articleDto);
+        const article = await articleService.create(articleDto, tenant.id);
         articles.push(article);
       }
 
-      // Create 5 invoices for each company
-      const tenantCompanies = companies.filter(c => c.tenantId === tenant.id);
-      for (let k = 0; k < 5 && tenantCompanies.length > 1; k++) {
-        const recipientCompany = faker.helpers.arrayElement(tenantCompanies.filter(c => c.id !== company.id));
-        const numberOfItems = faker.number.int({ min: 1, max: 3 });
-        const selectedArticles = faker.helpers.arrayElements(articles, numberOfItems);
-        const issueDate = faker.date.recent();
-        
-        const invoiceDto: CreateInvoiceDto = {
-          invoiceNumber: `INV-${faker.string.numeric(6)}`,
-          issueDate: issueDate,
-          dueDate: new Date(issueDate.getTime() + 30 * 24 * 60 * 60 * 1000), // 30 days from issue date
-          issuerId: company.id,
-          recipientId: recipientCompany.id,
-          items: selectedArticles.map(article => ({
-            articleId: article.id,
-            quantity: faker.number.float({ min: 1, max: 10 }),
-            unitPrice: article.basePrice,
-          })),
-        };
-        
-        await invoiceService.createInvoice(invoiceDto);
+      // Create invoices between companies
+      for (let k = 0; k < companies.length; k++) {
+        if (k !== j) {
+          const invoiceDto = {
+            issuerId: company.id,
+            recipientId: companies[k].id,
+            items: [
+              {
+                articleId: articles[0].id,
+                quantity: 2,
+                unitPrice: 100,
+              },
+            ],
+            issueDate: new Date(),
+          };
+          
+          await invoiceService.createInvoice(invoiceDto, tenant.id);
+        }
       }
     }
   }
