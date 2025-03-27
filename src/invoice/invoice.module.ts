@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InvoiceService } from './invoice.service';
 import { InvoiceController } from './invoice.controller';
-import { Invoice } from '../entities/invoice.entity';
-import { InvoiceItem } from '../entities/invoice-item.entity';
-import { Article } from '../entities/article.entity';
-import { Company } from '../company/entities/company.entity';
+import { Invoice } from './invoice.entity';
+import { InvoiceItem } from './invoice-item.entity';
+import { Article } from '../article/article.entity';
+import { Company } from '../company/company.entity';
 
 @Module({
   imports: [

@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
-import { Company } from '../company/entities/company.entity';
+import { Company } from '../company/company.entity';
 import { InvoiceItem } from './invoice-item.entity';
 
 @Entity()

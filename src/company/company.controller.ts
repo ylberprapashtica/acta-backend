@@ -1,12 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
-import { Company } from './entities/company.entity';
+import { Company } from './company.entity';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 import { FileUploadService } from './file-upload.service';
+import { TenantGuard } from '../common/guards/tenant.guard';
+import { Tenant } from '../common/decorators/tenant.decorator';
 
 @Controller('companies')
+@UseGuards(TenantGuard)
 export class CompanyController {
   constructor(
     private readonly companyService: CompanyService,
@@ -14,37 +17,51 @@ export class CompanyController {
   ) {}
 
   @Post()
-  create(@Body() createCompanyDto: CreateCompanyDto): Promise<Company> {
-    return this.companyService.create(createCompanyDto);
+  create(
+    @Body() createCompanyDto: CreateCompanyDto,
+    @Tenant() tenantId: string,
+  ): Promise<Company> {
+    return this.companyService.create(createCompanyDto, tenantId);
   }
 
   @Get()
-  findAll(@Query() paginationDto: PaginationDto): Promise<PaginatedResponse<Company>> {
-    return this.companyService.findAll(paginationDto);
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @Tenant() tenantId: string,
+  ): Promise<PaginatedResponse<Company>> {
+    return this.companyService.findAll(paginationDto, tenantId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Company> {
-    return this.companyService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @Tenant() tenantId: string,
+  ): Promise<Company> {
+    return this.companyService.findOne(id, tenantId);
   }
 
   @Patch(':id')
   update(
     @Param('id') id: string,
     @Body() updateCompanyDto: Partial<CreateCompanyDto>,
+    @Tenant() tenantId: string,
   ): Promise<Company> {
-    return this.companyService.update(id, updateCompanyDto);
+    return this.companyService.update(id, updateCompanyDto, tenantId);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<void> {
-    return this.companyService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @Tenant() tenantId: string,
+  ): Promise<void> {
+    return this.companyService.remove(id, tenantId);
   }
 
   @Post(':id/logo')
   @UseInterceptors(FileInterceptor('logo'))
   async uploadLogo(
     @Param('id') id: string,
+    @Tenant() tenantId: string,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -56,15 +73,18 @@ export class CompanyController {
     file: Express.Multer.File,
   ): Promise<Company> {
     const fileName = await this.fileUploadService.uploadLogo(file);
-    return this.companyService.update(id, { logo: fileName });
+    return this.companyService.update(id, { logo: fileName }, tenantId);
   }
 
   @Delete(':id/logo')
-  async removeLogo(@Param('id') id: string): Promise<Company> {
-    const company = await this.companyService.findOne(id);
+  async removeLogo(
+    @Param('id') id: string,
+    @Tenant() tenantId: string,
+  ): Promise<Company> {
+    const company = await this.companyService.findOne(id, tenantId);
     if (company.logo) {
       await this.fileUploadService.deleteLogo(company.logo);
     }
-    return this.companyService.update(id, { logo: undefined });
+    return this.companyService.update(id, { logo: undefined }, tenantId);
   }
 } 

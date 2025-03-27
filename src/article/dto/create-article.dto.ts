@@ -1,5 +1,5 @@
 import { IsString, IsNumber, IsEnum, IsUUID } from 'class-validator';
-import { VatCode } from '../../entities/article.entity';
+import { VatCode } from '../article.entity';
 
 export class CreateArticleDto {
   @IsString()

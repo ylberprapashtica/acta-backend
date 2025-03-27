@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { ArticleService } from './article.service';
-import { Article } from '../entities/article.entity';
+import { Article } from './article.entity';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
 @Controller('articles')

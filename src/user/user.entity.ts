@@ -1,8 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
-import { Tenant } from './tenant.entity';
+import { Tenant } from '../tenant/tenant.entity';
 
-export enum UserRole {
-  SUPER_ADMIN = 'super_admin',
+export enum Role {
+  SUPERADMIN = 'super_admin',
   ADMIN = 'admin',
   USER = 'user',
 }
@@ -13,32 +13,29 @@ export class User {
   id: string;
 
   @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
-
-  @Column({ unique: true })
   email: string;
 
   @Column()
   password: string;
 
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
   @Column({
     type: 'enum',
-    enum: UserRole,
-    default: UserRole.USER,
+    enum: Role,
+    default: Role.USER,
   })
-  role: UserRole;
+  role: Role;
 
-  @ManyToOne(() => Tenant, tenant => tenant.users, { nullable: true })
+  @ManyToOne(() => Tenant, tenant => tenant.users)
   tenant: Tenant;
 
-  @Column({ nullable: true })
+  @Column()
   tenantId: string;
-
-  @Column({ default: true })
-  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

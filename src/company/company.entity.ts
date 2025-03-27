@@ -1,6 +1,7 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Invoice } from '../../entities/invoice.entity';
-import { Article } from '../../entities/article.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne } from 'typeorm';
+import { Invoice } from '../invoice/invoice.entity';
+import { Article } from '../article/article.entity';
+import { Tenant } from '../tenant/tenant.entity';
 
 export enum BusinessType {
   SOLE_PROPRIETORSHIP = 'Sole Proprietorship',
@@ -74,4 +75,10 @@ export class Company {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
+
+  @ManyToOne(() => Tenant, tenant => tenant.companies)
+  tenant: Tenant;
+
+  @Column()
+  tenantId: string;
 } 

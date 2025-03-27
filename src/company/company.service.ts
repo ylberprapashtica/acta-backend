@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Company } from './entities/company.entity';
+import { Company } from './company.entity';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 
@@ -12,9 +12,12 @@ export class CompanyService {
     private companyRepository: Repository<Company>,
   ) {}
 
-  async create(createCompanyDto: CreateCompanyDto): Promise<Company> {
+  async create(createCompanyDto: CreateCompanyDto, tenantId: string): Promise<Company> {
     try {
-      const company = this.companyRepository.create(createCompanyDto);
+      const company = this.companyRepository.create({
+        ...createCompanyDto,
+        tenantId,
+      });
       return await this.companyRepository.save(company);
     } catch (error) {
       if (error.code === '23505') { // PostgreSQL unique violation code
@@ -33,18 +36,22 @@ export class CompanyService {
     }
   }
 
-  async findAll(paginationDto?: PaginationDto): Promise<PaginatedResponse<Company>> {
+  async findAll(paginationDto?: PaginationDto, tenantId?: string): Promise<PaginatedResponse<Company>> {
     const page = paginationDto?.page || 1;
     const limit = paginationDto?.limit || 10;
     const skip = (page - 1) * limit;
 
-    const [items, total] = await this.companyRepository.findAndCount({
-      skip,
-      take: limit,
-      order: {
-        businessName: 'ASC',
-      },
-    });
+    const queryBuilder = this.companyRepository.createQueryBuilder('company');
+
+    if (tenantId) {
+      queryBuilder.where('company.tenantId = :tenantId', { tenantId });
+    }
+
+    const [items, total] = await queryBuilder
+      .skip(skip)
+      .take(limit)
+      .orderBy('company.businessName', 'ASC')
+      .getManyAndCount();
 
     const lastPage = Math.ceil(total / limit);
 
@@ -59,17 +66,30 @@ export class CompanyService {
     };
   }
 
-  async findOne(id: string): Promise<Company> {
-    const company = await this.companyRepository.findOne({ where: { id } });
+  async findOne(id: string, tenantId?: string): Promise<Company> {
+    const queryBuilder = this.companyRepository.createQueryBuilder('company')
+      .where('company.id = :id', { id });
+
+    if (tenantId) {
+      queryBuilder.andWhere('company.tenantId = :tenantId', { tenantId });
+    }
+
+    const company = await queryBuilder.getOne();
+
     if (!company) {
       throw new NotFoundException(`Company with ID ${id} not found`);
     }
+
+    if (tenantId && company.tenantId !== tenantId) {
+      throw new ForbiddenException('You do not have access to this company');
+    }
+
     return company;
   }
 
-  async update(id: string, updateCompanyDto: Partial<CreateCompanyDto>): Promise<Company> {
+  async update(id: string, updateCompanyDto: Partial<CreateCompanyDto>, tenantId: string): Promise<Company> {
     try {
-      const company = await this.findOne(id);
+      const company = await this.findOne(id, tenantId);
       Object.assign(company, updateCompanyDto);
       return await this.companyRepository.save(company);
     } catch (error) {
@@ -89,10 +109,8 @@ export class CompanyService {
     }
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.companyRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Company with ID ${id} not found`);
-    }
+  async remove(id: string, tenantId: string): Promise<void> {
+    const company = await this.findOne(id, tenantId);
+    await this.companyRepository.remove(company);
   }
 } 

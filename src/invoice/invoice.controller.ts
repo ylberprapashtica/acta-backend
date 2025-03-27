@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Param, Res, Query, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { Response } from 'express';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
-import { Invoice } from '../entities/invoice.entity';
+import { Invoice } from './invoice.entity';
 
 @Controller('invoices')
 export class InvoiceController {

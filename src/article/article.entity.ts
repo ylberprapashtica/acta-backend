@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne } from 'typeorm';
-import { InvoiceItem } from './invoice-item.entity';
-import { Company } from '../company/entities/company.entity';
+import { InvoiceItem } from '../invoice/invoice-item.entity';
+import { Company } from '../company/company.entity';
 
 export enum VatCode {
   ZERO = 0,

@@ -1,5 +1,5 @@
 import { IsString, IsEnum, IsEmail, IsDateString, IsNotEmpty, IsOptional } from 'class-validator';
-import { BusinessType } from '../entities/company.entity';
+import { BusinessType } from '../company.entity';
 
 export class CreateCompanyDto {
   @IsString()
@@ -54,4 +54,7 @@ export class CreateCompanyDto {
   @IsString()
   @IsOptional()
   logo?: string;
+
+  @IsString()
+  tenantId: string;
 } 

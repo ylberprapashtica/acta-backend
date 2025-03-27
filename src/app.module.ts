@@ -5,19 +5,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import databaseConfig from './config/database.config';
-import { UsersModule } from './users/users.module';
-import { User } from './entities/user.entity';
+import { User } from './user/user.entity';
 import { CompanyModule } from './company/company.module';
-import { Company } from './company/entities/company.entity';
+import { Company } from './company/company.entity';
 import { ArticleModule } from './article/article.module';
-import { Article } from './entities/article.entity';
-import { Invoice } from './entities/invoice.entity';
-import { InvoiceItem } from './entities/invoice-item.entity';
+import { Article } from './article/article.entity';
+import { Invoice } from './invoice/invoice.entity';
+import { InvoiceItem } from './invoice/invoice-item.entity';
 import { InvoiceModule } from './invoice/invoice.module';
 import { DataSource } from 'typeorm';
-import { Tenant } from './entities/tenant.entity';
+import { Tenant } from './tenant/tenant.entity';
 import { LoggerService } from './common/services/logger.service';
-import { RolesGuard } from './common/guards/roles.guard';
 import { TenantGuard } from './common/guards/tenant.guard';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
@@ -62,10 +60,6 @@ import { UserModule } from './user/user.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
     },
     {
       provide: APP_GUARD,

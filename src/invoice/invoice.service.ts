@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Invoice } from '../entities/invoice.entity';
-import { InvoiceItem } from '../entities/invoice-item.entity';
-import { Article } from '../entities/article.entity';
-import { Company } from '../company/entities/company.entity';
+import { Invoice } from './invoice.entity';
+import { InvoiceItem } from './invoice-item.entity';
+import { Article } from '../article/article.entity';
+import { Company } from '../company/company.entity';
 import { PaginationDto, PaginatedResponse } from '../common/dto/pagination.dto';
 import * as fs from 'fs';
 import * as path from 'path';

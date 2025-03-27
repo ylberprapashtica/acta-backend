@@ -1,5 +1,9 @@
-import { Controller, Post, Body, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
+import { Role } from '../user/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +19,8 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   async register(@Body() registerDto: {
     email: string;
     password: string;
