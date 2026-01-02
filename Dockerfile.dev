@@ -1,0 +1,25 @@
+# Development Dockerfile
+FROM node:20.11.1-alpine
+
+WORKDIR /app
+
+# Install dependencies for hot reload
+RUN apk add --no-cache \
+    wget \
+    git
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm ci && npm cache clean --force
+
+# Create directories for uploads and logs
+RUN mkdir -p uploads logs
+
+# Expose port
+EXPOSE 3000
+
+# Start the development server with hot reload
+CMD ["npm", "run", "start:dev"]
+
