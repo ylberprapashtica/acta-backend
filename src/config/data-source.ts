@@ -53,10 +53,14 @@ if (isProduction) {
   // Development configuration (Local container)
   const schemaName = process.env.SCHEMA_NAME || 'acta_foughtsave';
   
+  if (!process.env.POSTGRES_DB) {
+    throw new Error('POSTGRES_DB is required in development environment');
+  }
+
   console.log('Using development database configuration:', {
     host: process.env.POSTGRES_HOST || 'localhost',
     port: process.env.POSTGRES_PORT || '5432',
-    database: process.env.POSTGRES_DB || 'acta_db',
+    database: process.env.POSTGRES_DB,
     schema: schemaName
   });
 
@@ -66,7 +70,7 @@ if (isProduction) {
     port: parseInt(process.env.POSTGRES_PORT || '5432', 10),
     username: process.env.POSTGRES_USER || 'acta_user',
     password: process.env.POSTGRES_PASSWORD || 'acta_password',
-    database: process.env.POSTGRES_DB || 'acta_db',
+    database: process.env.POSTGRES_DB,
     schema: schemaName,
     entities: [join(__dirname, '../**/*.entity{.ts,.js}')],
     migrations: [join(__dirname, '../database/migrations/*{.ts,.js}')],

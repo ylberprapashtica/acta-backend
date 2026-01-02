@@ -6,7 +6,7 @@ services:
     container_name: acta_backend_dev
     environment:
       - NODE_ENV=development
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-acta_db}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB}
       - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret_change_in_production}
       - PORT=${BACKEND_PORT:-3000}
       - HOST=0.0.0.0

@@ -14,20 +14,21 @@ export default registerAs('database', () => {
     throw new Error('DATABASE_URL is required');
   }
 
-  // Extract database name from DATABASE_URL to use as schema
-  const url = new URL(process.env.DATABASE_URL);
-  const databaseName = url.pathname.slice(1); // Remove leading slash
+  // Schema should be 'public' (or SCHEMA_NAME if set), not the database name
+  // The database name is in the DATABASE_URL path, but schema is separate
+  const schemaName = process.env.SCHEMA_NAME || 'public';
   
   return {
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    schema: databaseName,
+    schema: schemaName,
     entities: [join(__dirname, '..', '**', '*.entity.{ts,js}')],
     synchronize: false,
     logging: true,
-    ssl: isProduction ? {
-      rejectUnauthorized: false
-    } : false,
+    ssl: false,
+//    ssl: isProduction ? {
+//      rejectUnauthorized: false
+//    } : false,
     extra: {
       max: 5,
       idleTimeoutMillis: 30000,
