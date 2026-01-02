@@ -16,6 +16,9 @@ services:
     volumes:
       - ./uploads:/app/uploads
       - ./logs:/app/logs
+      - ./typeorm.config.ts:/app/typeorm.config.ts
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
     depends_on:
       postgres:
         condition: service_healthy
